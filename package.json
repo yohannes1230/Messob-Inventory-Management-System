@@ -1,0 +1,27 @@
+{
+  "name": "am-pms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Addis Mesob Dynamic Property Management System — monorepo root",
+  "workspaces": [
+    "server",
+    "client",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev:api": "npm run dev --workspace=server",
+    "dev:web": "npm run dev --workspace=client",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0"
+  }
+}

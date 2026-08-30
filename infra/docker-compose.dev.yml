@@ -1,0 +1,48 @@
+# AM-PMS local development environment
+# Brings up supporting services only (Mongo, Redis, MinIO).
+# Run `npm run dev:api` / `npm run dev:web` from the repo root separately
+# so both apps get fast local hot-reload instead of running inside containers.
+#
+# See design doc Section 11.1 (Environments) and 4.3 (Layer responsibilities).
+
+name: am-pms-dev
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: am-pms-mongo-dev
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./docker/.data/mongo-data:/data/db
+    healthcheck:
+      test: test $$(mongosh --quiet --eval "try { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}).ok || rs.status().ok } catch (e) { rs.status().ok }") -eq 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    container_name: am-pms-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./docker/.data/redis-data:/data
+
+  minio:
+    image: minio/minio:latest
+    container_name: am-pms-minio-dev
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: am-pms-dev
+      MINIO_ROOT_PASSWORD: am-pms-dev-secret
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console
+    volumes:
+      - ./docker/.data/minio-data:/data
