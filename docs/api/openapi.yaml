@@ -1,0 +1,584 @@
+openapi: 3.0.3
+info:
+  title: Addis Mesob Property Management System (AM-PMS) API
+  version: 1.0.0
+  description: >-
+    Backend API for AM-PMS. Phase 1 implements Auth, RBAC, User Management,
+    Role Management, and Append-Only Audit Logging.
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Local development server
+tags:
+  - name: Auth
+    description: Authentication, session management, MFA, and password controls
+  - name: Users
+    description: Administrative user account management
+  - name: Roles
+    description: Role-based access control definitions
+  - name: Audit Logs
+    description: Query append-only audit trail
+  - name: Health
+    description: Service availability check
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate user
+      description: >-
+        Validates credentials. If MFA is required or enabled, returns partial token
+        with mfaRequired: true. Otherwise issues access token and sets httpOnly refresh token cookie.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: refreshToken=abc...; Path=/api/v1/auth; HttpOnly; SameSite=Strict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Rotate refresh token
+      description: >-
+        Reads httpOnly refreshToken cookie. Rotates token family and issues new access token.
+        Detects reuse of consumed tokens, instantly revoking entire family.
+      responses:
+        '200':
+          description: Token rotated successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      accessToken: { type: string }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Terminate current session
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Session terminated and cookie cleared
+
+  /auth/logout-all:
+    post:
+      tags: [Auth]
+      summary: Terminate all sessions
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All user sessions revoked
+
+  /auth/mfa/setup:
+    post:
+      tags: [Auth]
+      summary: Initialize TOTP MFA
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      secret: { type: string }
+                      qrUri: { type: string }
+
+  /auth/mfa/verify:
+    post:
+      tags: [Auth]
+      summary: Verify TOTP code and complete authentication
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string, example: '123456' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      summary: Change password
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string }
+                newPassword: { type: string }
+      responses:
+        '200':
+          description: Password updated and all other sessions revoked
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current authenticated user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    $ref: '#/components/schemas/UserPublic'
+
+  /auth/users:
+    get:
+      tags: [Users]
+      summary: List users
+      x-required-permission: user.view
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUsers'
+    post:
+      tags: [Users]
+      summary: Create new user
+      x-required-permission: user.create
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserInput'
+      responses:
+        '201':
+          description: User created atomically with audit entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /auth/users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      x-required-permission: user.view
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+    patch:
+      tags: [Users]
+      summary: Update user details
+      x-required-permission: user.update
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /auth/users/{id}/deactivate:
+    post:
+      tags: [Users]
+      summary: Deactivate user account
+      x-required-permission: user.deactivate
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /auth/users/{id}/delegate:
+    post:
+      tags: [Users]
+      summary: Delegate user permissions temporarily
+      x-required-permission: user.delegate
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DelegateInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /auth/users/{id}/unlock:
+    post:
+      tags: [Users]
+      summary: Unlock user account after failed login lockout
+      x-required-permission: user.unlock
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /auth/roles:
+    get:
+      tags: [Roles]
+      summary: List roles
+      x-required-permission: role.view
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of roles
+    post:
+      tags: [Roles]
+      summary: Create custom role
+      x-required-permission: role.create
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleInput'
+      responses:
+        '201':
+          description: Role created atomically with audit entry
+
+  /auth/roles/{id}:
+    get:
+      tags: [Roles]
+      summary: Get role details
+      x-required-permission: role.view
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Role details
+    patch:
+      tags: [Roles]
+      summary: Update custom role
+      x-required-permission: role.update
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleInput'
+      responses:
+        '200':
+          description: Role updated
+
+  /audit-logs:
+    get:
+      tags: [Audit Logs]
+      summary: Query append-only audit trail
+      x-required-permission: auditlog.view.full
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: entityType
+          schema: { type: string }
+        - in: query
+          name: entityId
+          schema: { type: string }
+        - in: query
+          name: actor
+          schema: { type: string }
+        - in: query
+          name: action
+          schema: { type: string }
+        - in: query
+          name: startDate
+          schema: { type: string, format: date-time }
+        - in: query
+          name: endDate
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Paginated audit records
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: 'admin' }
+        password: { type: string, example: 'Admin@123456' }
+
+    CreateUserInput:
+      type: object
+      required: [username, email, password, roles]
+      properties:
+        username: { type: string, minLength: 3 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        employeeRef: { type: string }
+        roles:
+          type: array
+          items:
+            type: object
+            required: [role, scopeType]
+            properties:
+              role: { type: string }
+              scopeType: { type: string, enum: [global, branch, department] }
+              scopeRef: { type: string }
+
+    UpdateUserInput:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        employeeRef: { type: string }
+        roles:
+          type: array
+          items:
+            type: object
+            required: [role, scopeType]
+            properties:
+              role: { type: string }
+              scopeType: { type: string, enum: [global, branch, department] }
+              scopeRef: { type: string }
+
+    DelegateInput:
+      type: object
+      required: [toUser, role, startDate, endDate]
+      properties:
+        toUser: { type: string }
+        role: { type: string }
+        startDate: { type: string, format: date-time }
+        endDate: { type: string, format: date-time }
+
+    CreateRoleInput:
+      type: object
+      required: [name, permissions]
+      properties:
+        name: { type: string, example: 'inventory_clerk' }
+        description: { type: string }
+        permissions:
+          type: array
+          items: { type: string }
+
+    UpdateRoleInput:
+      type: object
+      properties:
+        description: { type: string }
+        permissions:
+          type: array
+          items: { type: string }
+
+    UserPublic:
+      type: object
+      properties:
+        _id: { type: string }
+        username: { type: string }
+        email: { type: string }
+        mfaEnabled: { type: boolean }
+        roles: { type: array, items: { type: object } }
+        isActive: { type: boolean }
+        isLocked: { type: boolean }
+        lastLoginAt: { type: string, format: date-time }
+
+    LoginResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        data:
+          type: object
+          properties:
+            accessToken: { type: string }
+            user: { $ref: '#/components/schemas/UserPublic' }
+            mfaRequired: { type: boolean }
+
+    UserResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        data: { $ref: '#/components/schemas/UserPublic' }
+
+    PaginatedUsers:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        data:
+          type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/UserPublic' }
+            pagination:
+              type: object
+              properties:
+                page: { type: integer }
+                limit: { type: integer }
+                totalItems: { type: integer }
+                totalPages: { type: integer }
+
+  responses:
+    Unauthorized:
+      description: Unauthorized or token invalid/expired
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error:
+                type: object
+                properties:
+                  code: { type: string, example: 'UNAUTHORIZED' }
+                  message: { type: string }
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error:
+                type: object
+                properties:
+                  code: { type: string, example: 'FORBIDDEN' }
+                  message: { type: string }
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              error:
+                type: object
+                properties:
+                  code: { type: string, example: 'RATE_LIMITED' }
+                  message: { type: string }
