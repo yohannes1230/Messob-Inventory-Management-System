@@ -2,6 +2,7 @@
   "extends": "../packages/config/tsconfig.base.json",
   "compilerOptions": {
     "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "noEmit": true
   },

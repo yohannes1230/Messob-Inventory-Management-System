@@ -2,9 +2,7 @@ openapi: 3.0.3
 info:
   title: Addis Mesob Property Management System (AM-PMS) API
   version: 1.0.0
-  description: >-
-    Backend API for AM-PMS. Phase 1 implements Auth, RBAC, User Management,
-    Role Management, and Append-Only Audit Logging.
+  description: Backend API for AM-PMS. Phase 1 implements Auth, RBAC, User Management, Role Management, and Append-Only Audit Logging.
 servers:
   - url: http://localhost:4000/api/v1
     description: Local development server
@@ -19,15 +17,33 @@ tags:
     description: Query append-only audit trail
   - name: Health
     description: Service availability check
-
+  - name: Master Data - Branches
+    description: Branch management
+  - name: Master Data - Buildings
+    description: Building management
+  - name: Master Data - Floors
+    description: Floor management
+  - name: Master Data - Rooms
+    description: Room management
+  - name: Master Data - Departments
+    description: Department management
+  - name: Master Data - Categories
+    description: Category taxonomy management
+  - name: Master Data - Property Types
+    description: Property Type management
+  - name: Master Data - Status Flows
+    description: Lifecycle status and state transition management
+  - name: Master Data - Request Types
+    description: Request type classification
+  - name: Custom Fields
+    description: Dynamic custom field schema and validation engine
 paths:
   /auth/login:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Authenticate user
-      description: >-
-        Validates credentials. If MFA is required or enabled, returns partial token
-        with mfaRequired: true. Otherwise issues access token and sets httpOnly refresh token cookie.
+      description: 'Validates credentials. If MFA is required or enabled, returns partial token with mfaRequired: true. Otherwise issues access token and sets httpOnly refresh token cookie.'
       security: []
       requestBody:
         required: true
@@ -51,14 +67,12 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/RateLimited'
-
   /auth/refresh:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Rotate refresh token
-      description: >-
-        Reads httpOnly refreshToken cookie. Rotates token family and issues new access token.
-        Detects reuse of consumed tokens, instantly revoking entire family.
+      description: Reads httpOnly refreshToken cookie. Rotates token family and issues new access token. Detects reuse of consumed tokens, instantly revoking entire family.
       security: []
       responses:
         '200':
@@ -72,17 +86,20 @@ paths:
               schema:
                 type: object
                 properties:
-                  success: { type: boolean, example: true }
+                  success:
+                    type: boolean
+                    example: true
                   data:
                     type: object
                     properties:
-                      accessToken: { type: string }
+                      accessToken:
+                        type: string
         '401':
           $ref: '#/components/responses/Unauthorized'
-
   /auth/logout:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Terminate current session
       security:
         - BearerAuth: []
@@ -91,10 +108,10 @@ paths:
           description: Session terminated and cookie cleared
         '401':
           $ref: '#/components/responses/Unauthorized'
-
   /auth/logout-all:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Terminate all sessions
       security:
         - BearerAuth: []
@@ -103,10 +120,10 @@ paths:
           description: All user sessions revoked
         '401':
           $ref: '#/components/responses/Unauthorized'
-
   /auth/mfa/setup:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Initialize TOTP MFA
       security:
         - BearerAuth: []
@@ -118,18 +135,22 @@ paths:
               schema:
                 type: object
                 properties:
-                  success: { type: boolean, example: true }
+                  success:
+                    type: boolean
+                    example: true
                   data:
                     type: object
                     properties:
-                      secret: { type: string }
-                      qrUri: { type: string }
+                      secret:
+                        type: string
+                      qrUri:
+                        type: string
         '401':
           $ref: '#/components/responses/Unauthorized'
-
   /auth/mfa/verify:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Verify TOTP code and complete authentication
       security:
         - BearerAuth: []
@@ -139,9 +160,12 @@ paths:
           application/json:
             schema:
               type: object
-              required: [code]
+              required:
+                - code
               properties:
-                code: { type: string, example: '123456' }
+                code:
+                  type: string
+                  example: '123456'
       responses:
         '200':
           description: MFA verification successful, access token returned
@@ -151,10 +175,10 @@ paths:
                 $ref: '#/components/schemas/LoginResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-
   /auth/change-password:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Change password
       security:
         - BearerAuth: []
@@ -164,19 +188,23 @@ paths:
           application/json:
             schema:
               type: object
-              required: [currentPassword, newPassword]
+              required:
+                - currentPassword
+                - newPassword
               properties:
-                currentPassword: { type: string }
-                newPassword: { type: string }
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
       responses:
         '200':
           description: Password updated and all other sessions revoked
         '401':
           $ref: '#/components/responses/Unauthorized'
-
   /auth/me:
     get:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Get current authenticated user profile
       security:
         - BearerAuth: []
@@ -188,15 +216,17 @@ paths:
               schema:
                 type: object
                 properties:
-                  success: { type: boolean, example: true }
+                  success:
+                    type: boolean
+                    example: true
                   data:
                     $ref: '#/components/schemas/UserPublic'
         '401':
           $ref: '#/components/responses/Unauthorized'
-
   /auth/users:
     get:
-      tags: [Users]
+      tags:
+        - Users
       summary: List users
       x-required-permission: user.view
       security:
@@ -204,10 +234,14 @@ paths:
       parameters:
         - in: query
           name: page
-          schema: { type: integer, default: 1 }
+          schema:
+            type: integer
+            default: 1
         - in: query
           name: limit
-          schema: { type: integer, default: 20 }
+          schema:
+            type: integer
+            default: 20
       responses:
         '200':
           description: Paginated user list
@@ -220,7 +254,8 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
     post:
-      tags: [Users]
+      tags:
+        - Users
       summary: Create new user
       x-required-permission: user.create
       security:
@@ -242,10 +277,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
   /auth/users/{id}:
     get:
-      tags: [Users]
+      tags:
+        - Users
       summary: Get user by ID
       x-required-permission: user.view
       security:
@@ -254,7 +289,8 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: User details
@@ -267,7 +303,8 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
     patch:
-      tags: [Users]
+      tags:
+        - Users
       summary: Update user details
       x-required-permission: user.update
       security:
@@ -276,7 +313,8 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -294,10 +332,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
   /auth/users/{id}/deactivate:
     post:
-      tags: [Users]
+      tags:
+        - Users
       summary: Deactivate user account
       x-required-permission: user.deactivate
       security:
@@ -306,7 +344,8 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Deactivated user record
@@ -318,10 +357,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
   /auth/users/{id}/delegate:
     post:
-      tags: [Users]
+      tags:
+        - Users
       summary: Delegate user permissions temporarily
       x-required-permission: user.delegate
       security:
@@ -330,7 +369,8 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -348,10 +388,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
   /auth/users/{id}/unlock:
     post:
-      tags: [Users]
+      tags:
+        - Users
       summary: Unlock user account after failed login lockout
       x-required-permission: user.unlock
       security:
@@ -360,7 +400,8 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Unlocked user record
@@ -372,10 +413,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
   /auth/roles:
     get:
-      tags: [Roles]
+      tags:
+        - Roles
       summary: List roles
       x-required-permission: role.view
       security:
@@ -388,7 +429,8 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
     post:
-      tags: [Roles]
+      tags:
+        - Roles
       summary: Create custom role
       x-required-permission: role.create
       security:
@@ -406,10 +448,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
   /auth/roles/{id}:
     get:
-      tags: [Roles]
+      tags:
+        - Roles
       summary: Get role details
       x-required-permission: role.view
       security:
@@ -418,7 +460,8 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Role details
@@ -427,7 +470,8 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
     patch:
-      tags: [Roles]
+      tags:
+        - Roles
       summary: Update custom role
       x-required-permission: role.update
       security:
@@ -436,7 +480,8 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -450,10 +495,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
   /audit-logs:
     get:
-      tags: [Audit Logs]
+      tags:
+        - Audit Logs
       summary: Query append-only audit trail
       x-required-permission: auditlog.view.full
       security:
@@ -461,28 +506,40 @@ paths:
       parameters:
         - in: query
           name: page
-          schema: { type: integer, default: 1 }
+          schema:
+            type: integer
+            default: 1
         - in: query
           name: limit
-          schema: { type: integer, default: 20 }
+          schema:
+            type: integer
+            default: 20
         - in: query
           name: entityType
-          schema: { type: string }
+          schema:
+            type: string
         - in: query
           name: entityId
-          schema: { type: string }
+          schema:
+            type: string
         - in: query
           name: actor
-          schema: { type: string }
+          schema:
+            type: string
         - in: query
           name: action
-          schema: { type: string }
+          schema:
+            type: string
         - in: query
           name: startDate
-          schema: { type: string, format: date-time }
+          schema:
+            type: string
+            format: date-time
         - in: query
           name: endDate
-          schema: { type: string, format: date-time }
+          schema:
+            type: string
+            format: date-time
       responses:
         '200':
           description: Paginated audit records
@@ -490,129 +547,2884 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-
+  /branches:
+    get:
+      tags:
+        - Master Data - Branches
+      summary: List branches
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of branches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Branch'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Master Data - Branches
+      summary: Create Branch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBranchInput'
+      responses:
+        '201':
+          description: Branch created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Branch'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /branches/{id}:
+    get:
+      tags:
+        - Master Data - Branches
+      summary: Get Branch by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Branch details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Branch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    patch:
+      tags:
+        - Master Data - Branches
+      summary: Update Branch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBranchInput'
+      responses:
+        '200':
+          description: Branch updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Branch'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Master Data - Branches
+      summary: Hard delete Branch (Blocked per FR-MD-05)
+      description: Hard deletes are prohibited on master data entities per FR-MD-05. Always returns 405 Method Not Allowed.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /branches/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Branches
+      summary: Deactivate Branch (Soft delete per FR-MD-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Branch deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Branch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+  /branches/{id}/history:
+    get:
+      tags:
+        - Master Data - Branches
+      summary: Get Branch change history (FR-MD-06)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version and change history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /buildings:
+    get:
+      tags:
+        - Master Data - Buildings
+      summary: List buildings
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of buildings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Building'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Master Data - Buildings
+      summary: Create Building
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBuildingInput'
+      responses:
+        '201':
+          description: Building created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Building'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /buildings/{id}:
+    get:
+      tags:
+        - Master Data - Buildings
+      summary: Get Building by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Building details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Building'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    patch:
+      tags:
+        - Master Data - Buildings
+      summary: Update Building
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBuildingInput'
+      responses:
+        '200':
+          description: Building updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Building'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Master Data - Buildings
+      summary: Hard delete Building (Blocked per FR-MD-05)
+      description: Hard deletes are prohibited on master data entities per FR-MD-05. Always returns 405 Method Not Allowed.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /buildings/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Buildings
+      summary: Deactivate Building (Soft delete per FR-MD-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Building deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Building'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+  /buildings/{id}/history:
+    get:
+      tags:
+        - Master Data - Buildings
+      summary: Get Building change history (FR-MD-06)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version and change history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /floors:
+    get:
+      tags:
+        - Master Data - Floors
+      summary: List floors
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of floors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Floor'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Master Data - Floors
+      summary: Create Floor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFloorInput'
+      responses:
+        '201':
+          description: Floor created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Floor'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /floors/{id}:
+    get:
+      tags:
+        - Master Data - Floors
+      summary: Get Floor by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Floor details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Floor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    patch:
+      tags:
+        - Master Data - Floors
+      summary: Update Floor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFloorInput'
+      responses:
+        '200':
+          description: Floor updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Floor'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Master Data - Floors
+      summary: Hard delete Floor (Blocked per FR-MD-05)
+      description: Hard deletes are prohibited on master data entities per FR-MD-05. Always returns 405 Method Not Allowed.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /floors/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Floors
+      summary: Deactivate Floor (Soft delete per FR-MD-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Floor deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Floor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+  /floors/{id}/history:
+    get:
+      tags:
+        - Master Data - Floors
+      summary: Get Floor change history (FR-MD-06)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version and change history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /rooms:
+    get:
+      tags:
+        - Master Data - Rooms
+      summary: List rooms
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of rooms
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Room'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Master Data - Rooms
+      summary: Create Room
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomInput'
+      responses:
+        '201':
+          description: Room created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Room'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /rooms/{id}:
+    get:
+      tags:
+        - Master Data - Rooms
+      summary: Get Room by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Room details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Room'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    patch:
+      tags:
+        - Master Data - Rooms
+      summary: Update Room
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoomInput'
+      responses:
+        '200':
+          description: Room updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Room'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Master Data - Rooms
+      summary: Hard delete Room (Blocked per FR-MD-05)
+      description: Hard deletes are prohibited on master data entities per FR-MD-05. Always returns 405 Method Not Allowed.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /rooms/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Rooms
+      summary: Deactivate Room (Soft delete per FR-MD-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Room deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Room'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+  /rooms/{id}/history:
+    get:
+      tags:
+        - Master Data - Rooms
+      summary: Get Room change history (FR-MD-06)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version and change history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /departments:
+    get:
+      tags:
+        - Master Data - Departments
+      summary: List departments
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of departments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Department'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Master Data - Departments
+      summary: Create Department
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDepartmentInput'
+      responses:
+        '201':
+          description: Department created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Department'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /departments/{id}:
+    get:
+      tags:
+        - Master Data - Departments
+      summary: Get Department by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Department details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Department'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    patch:
+      tags:
+        - Master Data - Departments
+      summary: Update Department
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDepartmentInput'
+      responses:
+        '200':
+          description: Department updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Department'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Master Data - Departments
+      summary: Hard delete Department (Blocked per FR-MD-05)
+      description: Hard deletes are prohibited on master data entities per FR-MD-05. Always returns 405 Method Not Allowed.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /departments/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Departments
+      summary: Deactivate Department (Soft delete per FR-MD-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Department deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Department'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+  /departments/{id}/history:
+    get:
+      tags:
+        - Master Data - Departments
+      summary: Get Department change history (FR-MD-06)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version and change history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /categories:
+    get:
+      tags:
+        - Master Data - Categories
+      summary: List categories
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Category'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Master Data - Categories
+      summary: Create Category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryInput'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /categories/{id}:
+    get:
+      tags:
+        - Master Data - Categories
+      summary: Get Category by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    patch:
+      tags:
+        - Master Data - Categories
+      summary: Update Category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryInput'
+      responses:
+        '200':
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Master Data - Categories
+      summary: Hard delete Category (Blocked per FR-MD-05)
+      description: Hard deletes are prohibited on master data entities per FR-MD-05. Always returns 405 Method Not Allowed.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /categories/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Categories
+      summary: Deactivate Category (Soft delete per FR-MD-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+  /categories/{id}/history:
+    get:
+      tags:
+        - Master Data - Categories
+      summary: Get Category change history (FR-MD-06)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version and change history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /property-types:
+    get:
+      tags:
+        - Master Data - Property Types
+      summary: List property-types
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of property-types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PropertyType'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Master Data - Property Types
+      summary: Create PropertyType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePropertyTypeInput'
+      responses:
+        '201':
+          description: PropertyType created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PropertyType'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /property-types/{id}:
+    get:
+      tags:
+        - Master Data - Property Types
+      summary: Get PropertyType by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: PropertyType details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PropertyType'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    patch:
+      tags:
+        - Master Data - Property Types
+      summary: Update PropertyType
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePropertyTypeInput'
+      responses:
+        '200':
+          description: PropertyType updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PropertyType'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Master Data - Property Types
+      summary: Hard delete PropertyType (Blocked per FR-MD-05)
+      description: Hard deletes are prohibited on master data entities per FR-MD-05. Always returns 405 Method Not Allowed.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /property-types/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Property Types
+      summary: Deactivate PropertyType (Soft delete per FR-MD-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: PropertyType deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PropertyType'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+  /property-types/{id}/history:
+    get:
+      tags:
+        - Master Data - Property Types
+      summary: Get PropertyType change history (FR-MD-06)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version and change history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /status-flows:
+    get:
+      tags:
+        - Master Data - Status Flows
+      summary: List status-flows
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of status-flows
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/StatusFlow'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Master Data - Status Flows
+      summary: Create StatusFlow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStatusFlowInput'
+      responses:
+        '201':
+          description: StatusFlow created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/StatusFlow'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /status-flows/{id}:
+    get:
+      tags:
+        - Master Data - Status Flows
+      summary: Get StatusFlow by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: StatusFlow details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/StatusFlow'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    patch:
+      tags:
+        - Master Data - Status Flows
+      summary: Update StatusFlow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStatusFlowInput'
+      responses:
+        '200':
+          description: StatusFlow updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/StatusFlow'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Master Data - Status Flows
+      summary: Hard delete StatusFlow (Blocked per FR-MD-05)
+      description: Hard deletes are prohibited on master data entities per FR-MD-05. Always returns 405 Method Not Allowed.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /status-flows/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Status Flows
+      summary: Deactivate StatusFlow (Soft delete per FR-MD-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: StatusFlow deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/StatusFlow'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+  /status-flows/{id}/history:
+    get:
+      tags:
+        - Master Data - Status Flows
+      summary: Get StatusFlow change history (FR-MD-06)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version and change history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /request-types:
+    get:
+      tags:
+        - Master Data - Request Types
+      summary: List request-types
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of request-types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RequestType'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Master Data - Request Types
+      summary: Create RequestType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequestTypeInput'
+      responses:
+        '201':
+          description: RequestType created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/RequestType'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /request-types/{id}:
+    get:
+      tags:
+        - Master Data - Request Types
+      summary: Get RequestType by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: RequestType details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/RequestType'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    patch:
+      tags:
+        - Master Data - Request Types
+      summary: Update RequestType
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRequestTypeInput'
+      responses:
+        '200':
+          description: RequestType updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/RequestType'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Master Data - Request Types
+      summary: Hard delete RequestType (Blocked per FR-MD-05)
+      description: Hard deletes are prohibited on master data entities per FR-MD-05. Always returns 405 Method Not Allowed.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /request-types/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Request Types
+      summary: Deactivate RequestType (Soft delete per FR-MD-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: RequestType deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/RequestType'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+  /request-types/{id}/history:
+    get:
+      tags:
+        - Master Data - Request Types
+      summary: Get RequestType change history (FR-MD-06)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version and change history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /custom-fields:
+    post:
+      tags:
+        - Custom Fields
+      summary: Create custom field definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomFieldInput'
+      responses:
+        '201':
+          description: Custom field created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/CustomField'
+        '400':
+          description: Validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /custom-fields/{id}:
+    patch:
+      tags:
+        - Custom Fields
+      summary: Update custom field definition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomFieldInput'
+      responses:
+        '200':
+          description: Custom field updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/CustomField'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /custom-fields/{id}/deactivate:
+    post:
+      tags:
+        - Custom Fields
+      summary: Deactivate custom field definition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Custom field deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/CustomField'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /custom-fields/{id}/history:
+    get:
+      tags:
+        - Custom Fields
+      summary: Get custom field version history
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version history list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MasterDataHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /property-types/{propertyTypeId}/custom-fields:
+    get:
+      tags:
+        - Custom Fields
+      summary: Get active custom fields for property type
+      parameters:
+        - name: propertyTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Active custom fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CustomField'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /property-types/{propertyTypeId}/custom-fields/validate:
+    post:
+      tags:
+        - Custom Fields
+      summary: Validate runtime custom field values against definition (FR-CF-05)
+      parameters:
+        - name: propertyTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Validation passed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      isValid:
+                        type: boolean
+                        example: true
+                      errors:
+                        type: object
+        '400':
+          description: Validation failed with detailed errors per field
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
   schemas:
     LoginInput:
       type: object
-      required: [username, password]
+      required:
+        - username
+        - password
       properties:
-        username: { type: string, example: 'admin' }
-        password: { type: string, example: 'Admin@123456' }
-
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          example: Admin@123456
     CreateUserInput:
       type: object
-      required: [username, email, password, roles]
+      required:
+        - username
+        - email
+        - password
+        - roles
       properties:
-        username: { type: string, minLength: 3 }
-        email: { type: string, format: email }
-        password: { type: string, minLength: 8 }
-        employeeRef: { type: string }
+        username:
+          type: string
+          minLength: 3
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        employeeRef:
+          type: string
         roles:
           type: array
           items:
             type: object
-            required: [role, scopeType]
+            required:
+              - role
+              - scopeType
             properties:
-              role: { type: string }
-              scopeType: { type: string, enum: [global, branch, department] }
-              scopeRef: { type: string }
-
+              role:
+                type: string
+              scopeType:
+                type: string
+                enum:
+                  - global
+                  - branch
+                  - department
+              scopeRef:
+                type: string
     UpdateUserInput:
       type: object
       properties:
-        email: { type: string, format: email }
-        employeeRef: { type: string }
+        email:
+          type: string
+          format: email
+        employeeRef:
+          type: string
         roles:
           type: array
           items:
             type: object
-            required: [role, scopeType]
+            required:
+              - role
+              - scopeType
             properties:
-              role: { type: string }
-              scopeType: { type: string, enum: [global, branch, department] }
-              scopeRef: { type: string }
-
+              role:
+                type: string
+              scopeType:
+                type: string
+                enum:
+                  - global
+                  - branch
+                  - department
+              scopeRef:
+                type: string
     DelegateInput:
       type: object
-      required: [toUser, role, startDate, endDate]
+      required:
+        - toUser
+        - role
+        - startDate
+        - endDate
       properties:
-        toUser: { type: string }
-        role: { type: string }
-        startDate: { type: string, format: date-time }
-        endDate: { type: string, format: date-time }
-
+        toUser:
+          type: string
+        role:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
     CreateRoleInput:
       type: object
-      required: [name, permissions]
+      required:
+        - name
+        - permissions
       properties:
-        name: { type: string, example: 'inventory_clerk' }
-        description: { type: string }
+        name:
+          type: string
+          example: inventory_clerk
+        description:
+          type: string
         permissions:
           type: array
-          items: { type: string }
-
+          items:
+            type: string
     UpdateRoleInput:
       type: object
       properties:
-        description: { type: string }
+        description:
+          type: string
         permissions:
           type: array
-          items: { type: string }
-
+          items:
+            type: string
     UserPublic:
       type: object
       properties:
-        _id: { type: string }
-        username: { type: string }
-        email: { type: string }
-        mfaEnabled: { type: boolean }
-        roles: { type: array, items: { type: object } }
-        isActive: { type: boolean }
-        isLocked: { type: boolean }
-        lastLoginAt: { type: string, format: date-time }
-
+        _id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        mfaEnabled:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: object
+        isActive:
+          type: boolean
+        isLocked:
+          type: boolean
+        lastLoginAt:
+          type: string
+          format: date-time
     LoginResponse:
       type: object
       properties:
-        success: { type: boolean, example: true }
+        success:
+          type: boolean
+          example: true
         data:
           type: object
           properties:
-            accessToken: { type: string }
-            user: { $ref: '#/components/schemas/UserPublic' }
-            mfaRequired: { type: boolean }
-
+            accessToken:
+              type: string
+            user:
+              $ref: '#/components/schemas/UserPublic'
+            mfaRequired:
+              type: boolean
     UserResponse:
       type: object
       properties:
-        success: { type: boolean, example: true }
-        data: { $ref: '#/components/schemas/UserPublic' }
-
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/UserPublic'
     PaginatedUsers:
       type: object
       properties:
-        success: { type: boolean, example: true }
+        success:
+          type: boolean
+          example: true
         data:
           type: object
           properties:
             data:
               type: array
-              items: { $ref: '#/components/schemas/UserPublic' }
+              items:
+                $ref: '#/components/schemas/UserPublic'
             pagination:
               type: object
               properties:
-                page: { type: integer }
-                limit: { type: integer }
-                totalItems: { type: integer }
-                totalPages: { type: integer }
-
+                page:
+                  type: integer
+                limit:
+                  type: integer
+                totalItems:
+                  type: integer
+                totalPages:
+                  type: integer
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+    MasterDataHistory:
+      type: object
+      properties:
+        _id:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+        version:
+          type: integer
+        action:
+          type: string
+          enum:
+            - create
+            - update
+            - deactivate
+        diff:
+          type: object
+        snapshot:
+          type: object
+        performedBy:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    Branch:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        nameAm:
+          type: string
+        code:
+          type: string
+        address:
+          type: string
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreateBranchInput:
+      type: object
+      required:
+        - name
+        - nameAm
+        - code
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        code:
+          type: string
+        address:
+          type: string
+    UpdateBranchInput:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        code:
+          type: string
+        address:
+          type: string
+    Building:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        nameAm:
+          type: string
+        branch:
+          type: string
+        floorsCount:
+          type: integer
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreateBuildingInput:
+      type: object
+      required:
+        - name
+        - branch
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        branch:
+          type: string
+        floorsCount:
+          type: integer
+    UpdateBuildingInput:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        floorsCount:
+          type: integer
+    Floor:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        nameAm:
+          type: string
+        building:
+          type: string
+        order:
+          type: integer
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreateFloorInput:
+      type: object
+      required:
+        - name
+        - building
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        building:
+          type: string
+        order:
+          type: integer
+    UpdateFloorInput:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        order:
+          type: integer
+    Room:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        nameAm:
+          type: string
+        floor:
+          type: string
+        building:
+          type: string
+        branch:
+          type: string
+        capacity:
+          type: integer
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreateRoomInput:
+      type: object
+      required:
+        - name
+        - floor
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        floor:
+          type: string
+        building:
+          type: string
+        branch:
+          type: string
+        capacity:
+          type: integer
+    UpdateRoomInput:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        capacity:
+          type: integer
+    Department:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        nameAm:
+          type: string
+        code:
+          type: string
+        branch:
+          type: string
+        parentDepartment:
+          type: string
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreateDepartmentInput:
+      type: object
+      required:
+        - name
+        - code
+        - branch
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        code:
+          type: string
+        branch:
+          type: string
+        parentDepartment:
+          type: string
+    UpdateDepartmentInput:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        code:
+          type: string
+        parentDepartment:
+          type: string
+    Category:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        nameAm:
+          type: string
+        description:
+          type: string
+        parentCategory:
+          type: string
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreateCategoryInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        description:
+          type: string
+        parentCategory:
+          type: string
+    UpdateCategoryInput:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        description:
+          type: string
+        parentCategory:
+          type: string
+    PropertyType:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        nameAm:
+          type: string
+        category:
+          type: string
+        unitOfMeasure:
+          type: string
+        defaultUsefulLifeMonths:
+          type: integer
+        customFieldDefs:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreatePropertyTypeInput:
+      type: object
+      required:
+        - name
+        - category
+        - unitOfMeasure
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        category:
+          type: string
+        unitOfMeasure:
+          type: string
+        defaultUsefulLifeMonths:
+          type: integer
+    UpdatePropertyTypeInput:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        category:
+          type: string
+        unitOfMeasure:
+          type: string
+        defaultUsefulLifeMonths:
+          type: integer
+    StatusFlow:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        states:
+          type: array
+          items:
+            type: object
+        transitions:
+          type: array
+          items:
+            type: object
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreateStatusFlowInput:
+      type: object
+      required:
+        - name
+        - states
+        - transitions
+      properties:
+        name:
+          type: string
+        states:
+          type: array
+          items:
+            type: object
+        transitions:
+          type: array
+          items:
+            type: object
+    UpdateStatusFlowInput:
+      type: object
+      properties:
+        name:
+          type: string
+        states:
+          type: array
+          items:
+            type: object
+        transitions:
+          type: array
+          items:
+            type: object
+    RequestType:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        nameAm:
+          type: string
+        module:
+          type: string
+          enum:
+            - assignment
+            - transfer
+            - maintenance
+            - disposal
+            - custom
+        workflowDefinition:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreateRequestTypeInput:
+      type: object
+      required:
+        - name
+        - module
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        module:
+          type: string
+          enum:
+            - assignment
+            - transfer
+            - maintenance
+            - disposal
+            - custom
+        workflowDefinition:
+          type: string
+          nullable: true
+    UpdateRequestTypeInput:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAm:
+          type: string
+        module:
+          type: string
+          enum:
+            - assignment
+            - transfer
+            - maintenance
+            - disposal
+            - custom
+        workflowDefinition:
+          type: string
+          nullable: true
+    CustomField:
+      type: object
+      properties:
+        _id:
+          type: string
+        propertyType:
+          type: string
+        name:
+          type: string
+        label:
+          type: string
+        labelAm:
+          type: string
+        dataType:
+          type: string
+          enum:
+            - text
+            - number
+            - date
+            - boolean
+            - single_select
+            - multi_select
+            - attachment
+        isRequired:
+          type: boolean
+        isUnique:
+          type: boolean
+        isSearchable:
+          type: boolean
+        options:
+          type: array
+          items:
+            type: string
+        validationRule:
+          type: string
+        order:
+          type: integer
+        isActive:
+          type: boolean
+        version:
+          type: integer
+    CreateCustomFieldInput:
+      type: object
+      required:
+        - propertyType
+        - name
+        - label
+        - labelAm
+        - dataType
+      properties:
+        propertyType:
+          type: string
+        name:
+          type: string
+        label:
+          type: string
+        labelAm:
+          type: string
+        dataType:
+          type: string
+          enum:
+            - text
+            - number
+            - date
+            - boolean
+            - single_select
+            - multi_select
+            - attachment
+        isRequired:
+          type: boolean
+        isUnique:
+          type: boolean
+        isSearchable:
+          type: boolean
+        options:
+          type: array
+          items:
+            type: string
+        validationRule:
+          type: string
+        order:
+          type: integer
+    UpdateCustomFieldInput:
+      type: object
+      properties:
+        label:
+          type: string
+        labelAm:
+          type: string
+        isRequired:
+          type: boolean
+        isUnique:
+          type: boolean
+        isSearchable:
+          type: boolean
+        options:
+          type: array
+          items:
+            type: string
+        validationRule:
+          type: string
+        order:
+          type: integer
   responses:
     Unauthorized:
       description: Unauthorized or token invalid/expired
@@ -621,12 +3433,17 @@ components:
           schema:
             type: object
             properties:
-              success: { type: boolean, example: false }
+              success:
+                type: boolean
+                example: false
               error:
                 type: object
                 properties:
-                  code: { type: string, example: 'UNAUTHORIZED' }
-                  message: { type: string }
+                  code:
+                    type: string
+                    example: UNAUTHORIZED
+                  message:
+                    type: string
     Forbidden:
       description: Insufficient permissions
       content:
@@ -634,12 +3451,17 @@ components:
           schema:
             type: object
             properties:
-              success: { type: boolean, example: false }
+              success:
+                type: boolean
+                example: false
               error:
                 type: object
                 properties:
-                  code: { type: string, example: 'FORBIDDEN' }
-                  message: { type: string }
+                  code:
+                    type: string
+                    example: FORBIDDEN
+                  message:
+                    type: string
     RateLimited:
       description: Too many requests
       content:
@@ -647,9 +3469,34 @@ components:
           schema:
             type: object
             properties:
-              success: { type: boolean, example: false }
+              success:
+                type: boolean
+                example: false
               error:
                 type: object
                 properties:
-                  code: { type: string, example: 'RATE_LIMITED' }
-                  message: { type: string }
+                  code:
+                    type: string
+                    example: RATE_LIMITED
+                  message:
+                    type: string
+    MethodNotAllowed:
+      description: Hard deletes are prohibited on master data entities per FR-MD-05
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: METHOD_NOT_ALLOWED
+                  message:
+                    type: string
+security:
+  - BearerAuth: []

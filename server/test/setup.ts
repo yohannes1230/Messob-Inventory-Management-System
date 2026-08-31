@@ -56,10 +56,20 @@ redisClient.disconnect = (async () => {}) as any;
 
 beforeAll(async () => {
   // Start 1-node replica set to support Mongoose multi-document transactions
-  replSet = await MongoMemoryReplSet.create({
-    replSet: { count: 1, storageEngine: 'wiredTiger' },
-    instanceOpts: [{ launchTimeout: 60000 }],
-  });
+  let attempts = 0;
+  while (attempts < 5) {
+    try {
+      replSet = await MongoMemoryReplSet.create({
+        replSet: { count: 1, storageEngine: 'wiredTiger' },
+        instanceOpts: [{ launchTimeout: 60000 }],
+      });
+      break;
+    } catch (err) {
+      attempts++;
+      if (attempts >= 5) throw err;
+      await new Promise((r) => setTimeout(r, 1000 * attempts));
+    }
+  }
 
   const uri = replSet.getUri();
   await mongoose.disconnect();

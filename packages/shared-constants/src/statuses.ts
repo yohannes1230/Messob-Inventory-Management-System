@@ -74,3 +74,25 @@ export const AUTH_ERROR_CODE = {
 } as const;
 
 export type AuthErrorCode = (typeof AUTH_ERROR_CODE)[keyof typeof AUTH_ERROR_CODE];
+
+/**
+ * Master data events logged to AuditLog.
+ */
+export const MASTERDATA_EVENT = {
+  CREATED: 'masterdata.created',
+  UPDATED: 'masterdata.updated',
+  DEACTIVATED: 'masterdata.deactivated',
+} as const;
+
+export type MasterDataEvent = (typeof MASTERDATA_EVENT)[keyof typeof MASTERDATA_EVENT];
+
+/**
+ * Custom field events logged to AuditLog.
+ */
+export const CUSTOMFIELD_EVENT = {
+  CREATED: 'customfield.created',
+  UPDATED: 'customfield.updated',
+  DEACTIVATED: 'customfield.deactivated',
+} as const;
+
+export type CustomFieldEvent = (typeof CUSTOMFIELD_EVENT)[keyof typeof CUSTOMFIELD_EVENT];

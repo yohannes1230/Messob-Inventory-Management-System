@@ -64,3 +64,63 @@ export function requireAnyPermission(...requiredPermissions: string[]) {
     next();
   };
 }
+
+export type ScopeResolver = (req: Request) => Promise<string | undefined | null> | string | undefined | null;
+
+/**
+ * Require the requested resource to match the user's assigned scope (FR-AUTH-06, NFR-SEC-03).
+ * - Global roles (scopeType: 'global') bypass scope restrictions.
+ * - Branch roles (scopeType: 'branch') must match the resolved branch of the target resource.
+ * - Throws 403 Forbidden with SCOPE_MISMATCH code if scope does not match.
+ */
+export function requireResourceScope(resolveResourceBranch: ScopeResolver) {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      return next(new UnauthorizedError('Authentication required'));
+    }
+
+    // Users with any global role bypass branch scope checking
+    const hasGlobalScope = req.user.roles.some((r) => r.scopeType === 'global');
+    if (hasGlobalScope) {
+      return next();
+    }
+
+    // Collect user's branch scopes
+    const userBranchScopes = req.user.roles
+      .filter((r) => r.scopeType === 'branch' && r.scopeRef)
+      .map((r) => r.scopeRef!.toString());
+
+    if (userBranchScopes.length === 0) {
+      return next(
+        new ForbiddenError(
+          'Access denied: role has no branch scope assigned',
+          'INSUFFICIENT_SCOPE',
+        ),
+      );
+    }
+
+    try {
+      const resourceBranch = await resolveResourceBranch(req);
+      if (!resourceBranch) {
+        // If resource doesn't exist yet or branch cannot be extracted,
+        // let the route handler deal with it (e.g. 404)
+        return next();
+      }
+
+      const isAllowed = userBranchScopes.includes(resourceBranch.toString());
+      if (!isAllowed) {
+        return next(
+          new ForbiddenError(
+            'Access denied: resource is outside user branch scope',
+            'SCOPE_MISMATCH',
+          ),
+        );
+      }
+
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+

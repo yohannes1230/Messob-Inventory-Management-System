@@ -21,6 +21,8 @@ import { logger, requestIdMiddleware } from './common/utils/index.js';
 import { auditSafetyNetMiddleware, errorHandler } from './common/middleware/index.js';
 import { authRouter } from './modules/auth/index.js';
 import { auditRouter } from './modules/audit/index.js';
+import { masterDataRouter } from './modules/masterdata/masterdata.routes.js';
+import { customFieldRouter } from './modules/customfields/customfield.routes.js';
 import { NotFoundError } from './common/utils/errors.js';
 
 export const app = express();
@@ -57,6 +59,8 @@ app.use(auditSafetyNetMiddleware);
 // ── 6. API routes ──
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/audit-logs', auditRouter);
+app.use('/api/v1', masterDataRouter);
+app.use('/api/v1', customFieldRouter);
 
 // ── 7. Health check ──
 app.get('/api/health', (_req, res) => {

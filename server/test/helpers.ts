@@ -39,15 +39,23 @@ export async function createTestUser(roleName: SystemRole = SYSTEM_ROLES.SUPER_A
 export async function getAuthHeader(roleName: SystemRole = SYSTEM_ROLES.SUPER_ADMIN, overrides: Record<string, any> = {}) {
   const { user, password, role } = await createTestUser(roleName, overrides);
 
+  const userRoles = overrides.roles
+    ? overrides.roles.map((r: any) => ({
+        role: (r.role?._id || r.role).toString(),
+        scopeType: r.scopeType || 'global',
+        scopeRef: r.scopeRef ? r.scopeRef.toString() : undefined,
+      }))
+    : [
+        {
+          role: role._id.toString(),
+          scopeType: 'global',
+        },
+      ];
+
   const payload = {
     sub: user._id.toString(),
     username: user.username,
-    roles: [
-      {
-        role: role._id.toString(),
-        scopeType: 'global',
-      },
-    ],
+    roles: userRoles,
     permissions: role.permissions,
   };
 

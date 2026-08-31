@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#FBFBFA] text-[#1E2227] antialiased;
+    font-family: 'Inter', 'Noto Sans Ethiopic', sans-serif;
+  }
+
+  [lang="am"] {
+    font-family: 'Noto Sans Ethiopic', 'Inter', sans-serif;
+  }
+}

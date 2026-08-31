@@ -63,9 +63,16 @@ export class TooManyRequestsError extends AppError {
   }
 }
 
+export class MethodNotAllowedError extends AppError {
+  constructor(message = 'Method not allowed', details?: unknown) {
+    super(message, 405, 'METHOD_NOT_ALLOWED', details);
+  }
+}
+
 export class InternalError extends AppError {
   constructor(message = 'Internal server error', details?: unknown) {
     super(message, 500, 'INTERNAL_ERROR', details);
     this.isOperational = false;
   }
 }
+
