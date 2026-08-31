@@ -37,7 +37,7 @@ export async function createTestUser(roleName: SystemRole = SYSTEM_ROLES.SUPER_A
 }
 
 export async function getAuthHeader(roleName: SystemRole = SYSTEM_ROLES.SUPER_ADMIN, overrides: Record<string, any> = {}) {
-  const { user, role } = await createTestUser(roleName, overrides);
+  const { user, password, role } = await createTestUser(roleName, overrides);
 
   const payload = {
     sub: user._id.toString(),
@@ -59,5 +59,6 @@ export async function getAuthHeader(roleName: SystemRole = SYSTEM_ROLES.SUPER_AD
     Authorization: `Bearer ${token}`,
     user,
     token,
+    password,
   };
 }

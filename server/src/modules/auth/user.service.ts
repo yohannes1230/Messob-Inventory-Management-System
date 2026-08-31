@@ -131,6 +131,12 @@ export class UserService {
     } as any);
     if (!after) throw new NotFoundError('User not found');
 
+    // Also persist to delegatee (toUser) for direct lookup
+    await userRepository.updateById(data.toUser, {
+      $push: { delegations: delegation },
+      updatedBy: delegatedBy,
+    } as any);
+
     return { before, after };
   }
 

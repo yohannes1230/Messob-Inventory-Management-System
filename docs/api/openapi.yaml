@@ -28,6 +28,7 @@ paths:
       description: >-
         Validates credentials. If MFA is required or enabled, returns partial token
         with mfaRequired: true. Otherwise issues access token and sets httpOnly refresh token cookie.
+      security: []
       requestBody:
         required: true
         content:
@@ -58,6 +59,7 @@ paths:
       description: >-
         Reads httpOnly refreshToken cookie. Rotates token family and issues new access token.
         Detects reuse of consumed tokens, instantly revoking entire family.
+      security: []
       responses:
         '200':
           description: Token rotated successfully
@@ -87,6 +89,8 @@ paths:
       responses:
         '200':
           description: Session terminated and cookie cleared
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /auth/logout-all:
     post:
@@ -97,6 +101,8 @@ paths:
       responses:
         '200':
           description: All user sessions revoked
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /auth/mfa/setup:
     post:
@@ -106,6 +112,7 @@ paths:
         - BearerAuth: []
       responses:
         '200':
+          description: MFA setup details with TOTP secret and QR URI
           content:
             application/json:
               schema:
@@ -117,6 +124,8 @@ paths:
                     properties:
                       secret: { type: string }
                       qrUri: { type: string }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /auth/mfa/verify:
     post:
@@ -135,10 +144,13 @@ paths:
                 code: { type: string, example: '123456' }
       responses:
         '200':
+          description: MFA verification successful, access token returned
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /auth/change-password:
     post:
@@ -159,6 +171,8 @@ paths:
       responses:
         '200':
           description: Password updated and all other sessions revoked
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /auth/me:
     get:
@@ -168,6 +182,7 @@ paths:
         - BearerAuth: []
       responses:
         '200':
+          description: Current user profile
           content:
             application/json:
               schema:
@@ -176,6 +191,8 @@ paths:
                   success: { type: boolean, example: true }
                   data:
                     $ref: '#/components/schemas/UserPublic'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /auth/users:
     get:
@@ -193,10 +210,15 @@ paths:
           schema: { type: integer, default: 20 }
       responses:
         '200':
+          description: Paginated user list
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedUsers'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
       tags: [Users]
       summary: Create new user
@@ -216,6 +238,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /auth/users/{id}:
     get:
@@ -231,10 +257,15 @@ paths:
           schema: { type: string }
       responses:
         '200':
+          description: User details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     patch:
       tags: [Users]
       summary: Update user details
@@ -254,10 +285,15 @@ paths:
               $ref: '#/components/schemas/UpdateUserInput'
       responses:
         '200':
+          description: Updated user details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /auth/users/{id}/deactivate:
     post:
@@ -273,10 +309,15 @@ paths:
           schema: { type: string }
       responses:
         '200':
+          description: Deactivated user record
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /auth/users/{id}/delegate:
     post:
@@ -298,10 +339,15 @@ paths:
               $ref: '#/components/schemas/DelegateInput'
       responses:
         '200':
+          description: Delegated user record
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /auth/users/{id}/unlock:
     post:
@@ -317,10 +363,15 @@ paths:
           schema: { type: string }
       responses:
         '200':
+          description: Unlocked user record
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /auth/roles:
     get:
@@ -332,6 +383,10 @@ paths:
       responses:
         '200':
           description: List of roles
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
       tags: [Roles]
       summary: Create custom role
@@ -347,6 +402,10 @@ paths:
       responses:
         '201':
           description: Role created atomically with audit entry
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /auth/roles/{id}:
     get:
@@ -363,6 +422,10 @@ paths:
       responses:
         '200':
           description: Role details
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     patch:
       tags: [Roles]
       summary: Update custom role
@@ -383,6 +446,10 @@ paths:
       responses:
         '200':
           description: Role updated
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /audit-logs:
     get:
@@ -419,6 +486,10 @@ paths:
       responses:
         '200':
           description: Paginated audit records
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
 components:
   securitySchemes:

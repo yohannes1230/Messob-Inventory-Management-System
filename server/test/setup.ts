@@ -58,6 +58,7 @@ beforeAll(async () => {
   // Start 1-node replica set to support Mongoose multi-document transactions
   replSet = await MongoMemoryReplSet.create({
     replSet: { count: 1, storageEngine: 'wiredTiger' },
+    instanceOpts: [{ launchTimeout: 60000 }],
   });
 
   const uri = replSet.getUri();

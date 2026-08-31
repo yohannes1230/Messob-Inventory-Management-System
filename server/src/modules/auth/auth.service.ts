@@ -25,7 +25,7 @@ import { userRepository, roleRepository, refreshTokenRepository } from './auth.r
 import { AuditLogModel } from '../audit/audit.model.js';
 import { TOKEN_STATUS, AUTH_EVENT, AUTH_ERROR_CODE, REVOKE_REASON, MFA_REQUIRED_ROLES } from '@am-pms/shared-constants';
 import type { IAccessTokenPayload, ILoginResponse, IUserPublic, IMfaSetupResponse } from '@am-pms/shared-types';
-import type { UserDocument } from './auth.model.js';
+import { UserModel, type UserDocument } from './auth.model.js';
 
 export class AuthService {
   // ── Login ──
@@ -128,8 +128,8 @@ export class AuthService {
     requestId: string,
   ): Promise<ILoginResponse> {
     const permissions = await roleRepository.getPermissionsForRoleIds(roleIds);
-    // Include delegated permissions
-    const effectivePermissions = this.resolvePermissionsWithDelegations(user, permissions);
+    // Include delegated permissions within active date range (FR-AUTH-08)
+    const effectivePermissions = await this.resolvePermissionsWithDelegations(user, permissions);
 
     const accessToken = this.generateAccessToken(user, roleIds, effectivePermissions);
     const { refreshToken, tokenHash, familyId } = this.generateRefreshToken(user);
@@ -275,7 +275,7 @@ export class AuthService {
 
     const roleIds = user.roles.map((r) => r.role.toString());
     const permissions = await roleRepository.getPermissionsForRoleIds(roleIds);
-    const effectivePermissions = this.resolvePermissionsWithDelegations(user, permissions);
+    const effectivePermissions = await this.resolvePermissionsWithDelegations(user, permissions);
 
     const accessToken = this.generateAccessToken(user, roleIds, effectivePermissions);
     const { refreshToken: newRefreshTokenRaw, tokenHash: newHash, familyId } = this.generateRefreshToken(
@@ -689,17 +689,39 @@ export class AuthService {
     return createHash('sha256').update(raw).digest('hex');
   }
 
-  private resolvePermissionsWithDelegations(user: UserDocument, basePermissions: string[]): string[] {
+  private async resolvePermissionsWithDelegations(user: UserDocument, basePermissions: string[]): Promise<string[]> {
     const now = new Date();
     const permSet = new Set(basePermissions);
+    const activeRoleIds: string[] = [];
 
+    // 1. Check delegations on the user document (where this user is the delegatee / toUser)
     for (const delegation of user.delegations || []) {
-      if (delegation.startDate <= now && delegation.endDate >= now) {
-        // Delegation is active — the permission resolution happens at
-        // the role level, so we'd need to look up the delegated role's permissions.
-        // For now, the delegation target's role permissions are already
-        // included in the JWT at login time.
-        // TODO: Resolve delegated role permissions from the Role collection
+      const isDelegatee = !delegation.toUser || delegation.toUser.toString() === user._id.toString();
+      if (isDelegatee && delegation.startDate <= now && delegation.endDate >= now) {
+        activeRoleIds.push(delegation.role.toString());
+      }
+    }
+
+    // 2. Also check if another user document has an active delegation to this user
+    const delegatorDocs = await UserModel.find({
+      'delegations.toUser': user._id,
+      'delegations.startDate': { $lte: now },
+      'delegations.endDate': { $gte: now },
+    }).exec();
+
+    for (const delegator of delegatorDocs) {
+      for (const d of delegator.delegations || []) {
+        if (d.toUser.toString() === user._id.toString() && d.startDate <= now && d.endDate >= now) {
+          activeRoleIds.push(d.role.toString());
+        }
+      }
+    }
+
+    if (activeRoleIds.length > 0) {
+      const uniqueRoleIds = [...new Set(activeRoleIds)];
+      const delegatedPerms = await roleRepository.getPermissionsForRoleIds(uniqueRoleIds);
+      for (const p of delegatedPerms) {
+        permSet.add(p);
       }
     }
 

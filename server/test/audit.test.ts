@@ -6,8 +6,27 @@ import { AuditLogModel } from '../src/modules/audit/audit.model.js';
 import { getAuthHeader } from './helpers.js';
 import { SYSTEM_ROLES, AUTH_EVENT } from '@am-pms/shared-constants';
 import * as userServiceModule from '../src/modules/auth/user.service.js';
+import { userRepository } from '../src/modules/auth/auth.repository.js';
 
 describe('Audit Interceptor & Transaction Atomicity Tests', () => {
+  it('should throw TRANSACTION_REQUIRED when a write is attempted with no active session in AsyncLocalStorage', async () => {
+    const orphanUsername = 'orphan_unwrapped_user';
+
+    // Direct repository write outside any mutationHandler / transaction context
+    await expect(
+      userRepository.create({
+        username: orphanUsername,
+        email: `${orphanUsername}@example.com`,
+        passwordHash: 'dummy_hash',
+        roles: [],
+        isActive: true,
+      }),
+    ).rejects.toThrow('TRANSACTION_REQUIRED');
+
+    // Structural atomicity guarantee: assert nothing was persisted to database
+    const persisted = await UserModel.findOne({ username: orphanUsername });
+    expect(persisted).toBeNull();
+  });
   it('should atomically persist both the entity change and the audit log entry', async () => {
     const { Authorization, user: adminUser } = await getAuthHeader(SYSTEM_ROLES.SUPER_ADMIN);
     const empRole = await RoleModel.findOne({ name: SYSTEM_ROLES.EMPLOYEE });
