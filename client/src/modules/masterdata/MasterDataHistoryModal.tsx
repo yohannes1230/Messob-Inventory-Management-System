@@ -35,7 +35,7 @@ export const MasterDataHistoryModal: React.FC<MasterDataHistoryModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden border border-gray-200">
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-[#FEFAE0] border-b border-gray-200 flex items-center justify-between">
+        <div className="px-6 py-4 bg-[#eef6ff] border-b border-[#d9ecff] flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-gray-900">
               {isAm ? 'የለውጥ ታሪክ' : 'Audit & Change History'}
@@ -68,7 +68,7 @@ export const MasterDataHistoryModal: React.FC<MasterDataHistoryModalProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <span className="px-2 py-0.5 bg-[#D4A373] text-white text-xs font-bold rounded">
+                      <span className="px-2 py-0.5 bg-[#1668c1] text-white text-xs font-bold rounded">
                         v{entry.version}
                       </span>
                       <span

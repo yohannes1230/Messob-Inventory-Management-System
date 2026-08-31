@@ -249,11 +249,11 @@ export const MasterDataConsole: React.FC<MasterDataConsoleProps> = ({
       {/* Header Bar */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-3">
-          <div className="h-9 w-9 bg-[#D4A373] text-white rounded-lg flex items-center justify-center font-bold text-lg">
+          <div className="h-9 w-9 bg-[#1668c1] text-white rounded-lg flex items-center justify-center font-bold text-lg">
             M
           </div>
           <div>
-            <h1 className="text-lg font-bold text-[#1E2227]">
+            <h1 className="text-lg font-bold text-[#171a21]">
               {isAm ? 'መሶብ የንብረት አስተዳደር — ማዋቀሪያ ኮንሶል' : 'Messob PMS — Configuration Console'}
             </h1>
             <p className="text-xs text-gray-500">
@@ -269,7 +269,7 @@ export const MasterDataConsole: React.FC<MasterDataConsoleProps> = ({
             onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
             className="flex items-center space-x-1.5 px-3 py-1.5 border border-gray-300 rounded-md text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm"
           >
-            <Globe className="h-3.5 w-3.5 text-[#D4A373]" />
+            <Globe className="h-3.5 w-3.5 text-[#1668c1]" />
             <span>{lang === 'en' ? 'አማርኛ' : 'English'}</span>
           </button>
 
@@ -279,7 +279,7 @@ export const MasterDataConsole: React.FC<MasterDataConsoleProps> = ({
               setEditingRecord(null);
               setIsFormOpen(true);
             }}
-            className="flex items-center space-x-1.5 px-4 py-1.5 bg-[#D4A373] hover:bg-[#A07855] text-white rounded-md text-xs font-semibold shadow transition-colors"
+            className="flex items-center space-x-1.5 px-4 py-1.5 bg-[#1668c1] hover:bg-[#10529b] text-white rounded-md text-xs font-semibold shadow transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>{isAm ? 'አዲስ መዝግብ' : 'Add New'}</span>
@@ -302,11 +302,11 @@ export const MasterDataConsole: React.FC<MasterDataConsoleProps> = ({
                 onClick={() => setActiveTab(tab.key)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-[#FEFAE0] text-[#8A5A36] font-semibold shadow-xs'
+                    ? 'bg-[#eef6ff] text-[#0b3d75] font-semibold shadow-xs'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
               >
-                <span className={isActive ? 'text-[#D4A373]' : 'text-gray-400'}>
+                <span className={isActive ? 'text-[#1668c1]' : 'text-gray-400'}>
                   {tab.icon}
                 </span>
                 <span>{isAm ? tab.labelAm : tab.label}</span>

@@ -2,13 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Section 5.2 Brand Primary */
+  --am-primary-50:  #eef6ff;
+  --am-primary-100: #d9ecff;
+  --am-primary-300: #7ab8f5;
+  --am-primary-500: #1668c1;   /* primary brand blue */
+  --am-primary-600: #10529b;
+  --am-primary-700: #0b3d75;
+  --am-primary-900: #062347;
+
+  /* Section 5.2 Brand Accent */
+  --am-accent-500:  #0ea88c;   /* teal-green accent */
+  --am-accent-700:  #076b58;
+
+  /* Section 5.2 Ethiopian Heritage */
+  --am-heritage-green:  #078930;
+  --am-heritage-yellow: #fcdd09;
+  --am-heritage-red:    #da121a;
+
+  /* Section 5.2 Neutrals */
+  --am-gray-0:   #ffffff;
+  --am-gray-50:  #f7f8fa;
+  --am-gray-100: #eef0f3;
+  --am-gray-200: #e1e4e9;
+  --am-gray-400: #9aa2af;
+  --am-gray-600: #5c6472;
+  --am-gray-800: #2b303b;
+  --am-gray-900: #171a21;
+
+  /* Section 5.2 Semantic Status */
+  --status-info:      #1668c1;
+  --status-neutral:   #5c6472;
+  --status-available: #0ea88c;
+  --status-pending:   #d69b1f;
+  --status-active:    #17824e;
+  --status-warning:   #d97706;
+  --status-danger:    #da121a;
+  --status-terminal:  #6b7280;
+
+  /* Section 5.2 Dark mode surfaces */
+  --am-dark-bg:      #0f1319;
+  --am-dark-surface: #171c24;
+  --am-dark-border:  #262c37;
+}
+
 @layer base {
   body {
-    @apply bg-[#FBFBFA] text-[#1E2227] antialiased;
-    font-family: 'Inter', 'Noto Sans Ethiopic', sans-serif;
+    background-color: var(--am-gray-50);
+    color: var(--am-gray-900);
+    font-family: 'Inter', 'Noto Sans Ethiopic', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 
   [lang="am"] {
-    font-family: 'Noto Sans Ethiopic', 'Inter', sans-serif;
+    font-family: 'Noto Sans Ethiopic', 'Inter', system-ui, sans-serif;
   }
 }

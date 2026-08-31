@@ -226,13 +226,7 @@ roomRouter.post(
   '/',
   authGuard,
   requirePermission(PERMISSIONS.MASTERDATA_ROOM_CREATE),
-  requireResourceScope(async (req) => {
-    if (req.body.branch) return req.body.branch;
-    const f = await FloorModel.findById(req.body.floor);
-    if (!f) return undefined;
-    const b = await BuildingModel.findById(f.building);
-    return b?.branch?.toString();
-  }),
+  requireResourceScope((req) => req.body.branch),
   validate(CreateRoomSchema),
   mutationHandler(masterDataController.create('room')),
 );
@@ -242,12 +236,7 @@ roomRouter.patch(
   requirePermission(PERMISSIONS.MASTERDATA_ROOM_UPDATE),
   requireResourceScope(async (req) => {
     const r = await RoomModel.findById(req.params.id);
-    if (!r) return undefined;
-    if (r.branch) return r.branch.toString();
-    const f = await FloorModel.findById(r.floor);
-    if (!f) return undefined;
-    const b = await BuildingModel.findById(f.building);
-    return b?.branch?.toString();
+    return r?.branch?.toString();
   }),
   validate(UpdateRoomSchema),
   mutationHandler(masterDataController.update('room')),
@@ -258,12 +247,7 @@ roomRouter.post(
   requirePermission(PERMISSIONS.MASTERDATA_ROOM_DEACTIVATE),
   requireResourceScope(async (req) => {
     const r = await RoomModel.findById(req.params.id);
-    if (!r) return undefined;
-    if (r.branch) return r.branch.toString();
-    const f = await FloorModel.findById(r.floor);
-    if (!f) return undefined;
-    const b = await BuildingModel.findById(f.building);
-    return b?.branch?.toString();
+    return r?.branch?.toString();
   }),
   mutationHandler(masterDataController.deactivate('room')),
 );

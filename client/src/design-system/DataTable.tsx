@@ -74,7 +74,7 @@ export const DataTable: React.FC<DataTableProps> = ({
             value={searchTerm}
             onChange={handleSearchChange}
             placeholder={isAm ? 'ፈልግ...' : 'Search records...'}
-            className="w-full pl-9 pr-3 py-1.5 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A373]"
+            className="w-full pl-9 pr-3 py-1.5 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1]"
           />
         </div>
         <div className="text-xs text-gray-500 font-medium">
@@ -85,7 +85,7 @@ export const DataTable: React.FC<DataTableProps> = ({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-[#FEFAE0] text-gray-700 font-semibold">
+          <thead className="bg-[#eef6ff] text-[#0b3d75] font-semibold border-b border-[#d9ecff]">
             <tr>
               {columns.map((col) => (
                 <th
@@ -140,7 +140,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                         <button
                           onClick={() => onViewHistory(row)}
                           title={isAm ? 'የለውጥ ታሪክ' : 'Change History'}
-                          className="p-1 text-gray-500 hover:text-blue-600 rounded transition-colors"
+                          className="p-1 text-gray-500 hover:text-[#1668c1] rounded transition-colors"
                         >
                           <History className="h-4 w-4 inline" />
                         </button>
@@ -149,7 +149,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                         <button
                           onClick={() => onEdit(row)}
                           title={isAm ? 'አርትዕ' : 'Edit'}
-                          className="p-1 text-gray-500 hover:text-[#D4A373] rounded transition-colors"
+                          className="p-1 text-gray-500 hover:text-[#1668c1] rounded transition-colors"
                         >
                           <Edit2 className="h-4 w-4 inline" />
                         </button>

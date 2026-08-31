@@ -171,7 +171,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 value={values[field.name] ?? ''}
                 placeholder={placeholder}
                 onChange={(e) => handleChange(field.name, e.target.value)}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D4A373] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               />
@@ -183,7 +183,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 value={values[field.name] ?? ''}
                 placeholder={placeholder}
                 onChange={(e) => handleChange(field.name, e.target.value)}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D4A373] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               />
@@ -194,7 +194,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 type="date"
                 value={values[field.name] ? String(values[field.name]).split('T')[0] : ''}
                 onChange={(e) => handleChange(field.name, e.target.value)}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D4A373] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               />
@@ -207,7 +207,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                   id={`field-${field.name}`}
                   checked={Boolean(values[field.name])}
                   onChange={(e) => handleChange(field.name, e.target.checked)}
-                  className="h-4 w-4 text-[#D4A373] focus:ring-[#D4A373] border-gray-300 rounded"
+                  className="h-4 w-4 text-[#1668c1] focus:ring-[#1668c1] border-gray-300 rounded"
                 />
                 <label htmlFor={`field-${field.name}`} className="text-sm text-gray-600 select-none">
                   {isAm ? 'አዎ / ነቅቷል' : 'Yes / Active'}
@@ -219,7 +219,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               <select
                 value={values[field.name] ?? ''}
                 onChange={(e) => handleChange(field.name, e.target.value)}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D4A373] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               >
@@ -252,7 +252,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                             );
                           }
                         }}
-                        className="h-4 w-4 text-[#D4A373] focus:ring-[#D4A373] border-gray-300 rounded"
+                        className="h-4 w-4 text-[#1668c1] focus:ring-[#1668c1] border-gray-300 rounded"
                       />
                       <span>{opt}</span>
                     </label>
@@ -267,7 +267,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 placeholder={isAm ? 'የፋይል ወይም ዶክመንት URL' : 'Document or attachment URL'}
                 value={typeof values[field.name] === 'object' ? values[field.name]?.url ?? '' : values[field.name] ?? ''}
                 onChange={(e) => handleChange(field.name, { url: e.target.value })}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D4A373] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               />
@@ -282,7 +282,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-[#D4A373] hover:bg-[#A07855] text-white font-medium py-2 px-4 rounded-md shadow transition-colors disabled:opacity-50 text-sm"
+          className="w-full bg-[#1668c1] hover:bg-[#10529b] text-white font-medium py-2 px-4 rounded-md shadow transition-colors disabled:opacity-50 text-sm"
         >
           {submitLabel || (lang === 'am' ? 'አስቀምጥ' : 'Save')}
         </button>
