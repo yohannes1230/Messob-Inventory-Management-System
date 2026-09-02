@@ -51,9 +51,10 @@ describe('MasterDataConsole Component', () => {
     fireEvent.click(historyButtons[0]!);
 
     expect(screen.getByText(/Audit & Change History/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Close/i })).toBeInTheDocument();
+    const closeButtons = screen.getAllByRole('button', { name: /Close/i });
+    expect(closeButtons.length).toBeGreaterThanOrEqual(1);
 
-    fireEvent.click(screen.getByRole('button', { name: /Close/i }));
+    fireEvent.click(closeButtons[0]!);
     expect(screen.queryByText(/Audit & Change History/i)).not.toBeInTheDocument();
   });
 });

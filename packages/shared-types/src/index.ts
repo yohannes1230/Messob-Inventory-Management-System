@@ -6,4 +6,9 @@ export * from './masterdata.types.js';
 export * from './masterdata.schemas.js';
 export * from './customfield.types.js';
 export * from './customfield.schemas.js';
-
+export * from './supplier.types.js';
+export * from './supplier.schemas.js';
+export * from './asset.types.js';
+export * from './asset.schemas.js';
+export * from './assignment.types.js';
+export * from './assignment.schemas.js';

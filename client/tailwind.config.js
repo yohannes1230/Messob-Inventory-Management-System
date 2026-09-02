@@ -5,20 +5,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Section 5.2: Brand Primary (trust, government blue)
+        // Section 5.2: Brand Primary (Real Addis Mesob Blue #023bc8)
         'am-primary': {
-          50: '#eef6ff',
-          100: '#d9ecff',
-          300: '#7ab8f5',
-          500: '#1668c1',
-          600: '#10529b',
-          700: '#0b3d75',
-          900: '#062347',
+          50: '#eef4ff',
+          100: '#d4e2ff',
+          300: '#6c94f7',
+          500: '#023bc8',
+          600: '#0230a3',
+          700: '#01237a',
+          900: '#011547',
         },
-        // Section 5.2: Brand Accent (teal-green)
+        // Section 5.2: Brand Accent (Real Addis Mesob Gold #fbd603)
         'am-accent': {
-          500: '#0ea88c',
-          700: '#076b58',
+          500: '#fbd603',
+          700: '#8c5d03',
         },
         // Section 5.2: Ethiopian Heritage (sparing accents only)
         'am-heritage': {

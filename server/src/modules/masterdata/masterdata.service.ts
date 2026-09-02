@@ -9,6 +9,7 @@ import {
   PropertyTypeModel,
   StatusFlowModel,
   RequestTypeModel,
+  SupplierModel,
   MasterDataHistoryModel,
   type MasterDataHistoryDocument,
 } from './masterdata.model.js';
@@ -27,6 +28,7 @@ export const MASTER_DATA_MODELS: Record<string, Model<any>> = {
   property_type: PropertyTypeModel,
   status_flow: StatusFlowModel,
   request_type: RequestTypeModel,
+  supplier: SupplierModel,
 };
 
 export class MasterDataService {

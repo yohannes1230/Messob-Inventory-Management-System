@@ -91,10 +91,36 @@ export const PERMISSIONS = {
   // Master Data History
   MASTERDATA_HISTORY_VIEW: 'masterdata.history.view',
 
-  // ── Phase 3+: Assets & Assignments ──
-  // ASSET_VIEW:       'asset.view',
-  // ASSET_CREATE:     'asset.create',
-  // ... etc.
+  // Master Data - Supplier (Phase 3 dependency)
+  MASTERDATA_SUPPLIER_VIEW: 'masterdata.supplier.view',
+  MASTERDATA_SUPPLIER_CREATE: 'masterdata.supplier.create',
+  MASTERDATA_SUPPLIER_UPDATE: 'masterdata.supplier.update',
+  MASTERDATA_SUPPLIER_DEACTIVATE: 'masterdata.supplier.deactivate',
+
+  // ── Phase 3: Assets & Assignments (FR-REG-01→06, FR-ASG-01→06) ──
+  ASSET_VIEW: 'asset.view',
+  ASSET_VIEW_ASSIGNED: 'asset.view.assigned',
+  ASSET_VIEW_TEAM: 'asset.view.team',
+  ASSET_CREATE: 'asset.create',
+  ASSET_RECEIVE: 'asset.receive',
+  ASSET_DISPATCH: 'asset.dispatch',
+  ASSET_UPDATE: 'asset.update',
+  ASSET_DEACTIVATE: 'asset.deactivate',
+  ASSET_IMPORT: 'asset.import',
+  ASSET_VALUE_EDIT: 'asset.value.edit',
+  ASSET_ATTACH_PHOTO: 'asset.attach_photo',
+  ASSET_GENERATE_QR: 'asset.generate_qr',
+  ASSET_BUNDLE_MANAGE: 'asset.bundle.manage',
+
+  // Assignments & Transfers
+  ASSIGNMENT_CREATE: 'assignment.create',
+  ASSIGNMENT_VIEW: 'assignment.view',
+  ASSIGNMENT_ACCEPT: 'asset.accept',
+  ASSIGNMENT_RETURN: 'asset.return.request',
+  TRANSFER_CREATE: 'transfer.create',
+  TRANSFER_APPROVE: 'transfer.approve',
+  HISTORY_VIEW_OWN: 'history.view.own',
+  HISTORY_VIEW_FULL: 'history.view.full',
 } as const;
 
 /** Union type of all valid permission strings. */

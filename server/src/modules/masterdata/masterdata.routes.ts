@@ -24,6 +24,8 @@ import {
   UpdateStatusFlowSchema,
   CreateRequestTypeSchema,
   UpdateRequestTypeSchema,
+  CreateSupplierSchema,
+  UpdateSupplierSchema,
 } from '@am-pms/shared-types';
 import {
   BuildingModel,
@@ -517,3 +519,53 @@ requestTypeRouter.get(
   queryHandler(masterDataController.getHistory('request_type')),
 );
 masterDataRouter.use('/request-types', requestTypeRouter);
+
+// ════════════════════════════════════════════════════════════════════════════
+// 10. Supplier Routes (Global / SRS 9.18)
+// ════════════════════════════════════════════════════════════════════════════
+const supplierRouter = Router();
+supplierRouter.get(
+  '/',
+  authGuard,
+  requirePermission(PERMISSIONS.MASTERDATA_SUPPLIER_VIEW),
+  queryHandler(masterDataController.list('supplier')),
+);
+supplierRouter.get(
+  '/:id',
+  authGuard,
+  requirePermission(PERMISSIONS.MASTERDATA_SUPPLIER_VIEW),
+  queryHandler(masterDataController.getById('supplier')),
+);
+supplierRouter.post(
+  '/',
+  authGuard,
+  requirePermission(PERMISSIONS.MASTERDATA_SUPPLIER_CREATE),
+  validate(CreateSupplierSchema),
+  mutationHandler(masterDataController.create('supplier')),
+);
+supplierRouter.patch(
+  '/:id',
+  authGuard,
+  requirePermission(PERMISSIONS.MASTERDATA_SUPPLIER_UPDATE),
+  validate(UpdateSupplierSchema),
+  mutationHandler(masterDataController.update('supplier')),
+);
+supplierRouter.post(
+  '/:id/deactivate',
+  authGuard,
+  requirePermission(PERMISSIONS.MASTERDATA_SUPPLIER_DEACTIVATE),
+  mutationHandler(masterDataController.deactivate('supplier')),
+);
+supplierRouter.delete(
+  '/:id',
+  authGuard,
+  queryHandler(masterDataController.hardDelete.bind(masterDataController)),
+);
+supplierRouter.get(
+  '/:id/history',
+  authGuard,
+  requirePermission(PERMISSIONS.MASTERDATA_HISTORY_VIEW),
+  queryHandler(masterDataController.getHistory('supplier')),
+);
+masterDataRouter.use('/suppliers', supplierRouter);
+

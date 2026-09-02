@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  /* Section 5.2 Brand Primary */
-  --am-primary-50:  #eef6ff;
-  --am-primary-100: #d9ecff;
-  --am-primary-300: #7ab8f5;
-  --am-primary-500: #1668c1;   /* primary brand blue */
-  --am-primary-600: #10529b;
-  --am-primary-700: #0b3d75;
-  --am-primary-900: #062347;
+  /* Section 5.2 Brand Primary (Real Addis Mesob Blue #023bc8) */
+  --am-primary-50:  #eef4ff;
+  --am-primary-100: #d4e2ff;
+  --am-primary-300: #6c94f7;
+  --am-primary-500: #023bc8;   /* true brand blue from official logo */
+  --am-primary-600: #0230a3;
+  --am-primary-700: #01237a;
+  --am-primary-900: #011547;
 
-  /* Section 5.2 Brand Accent */
-  --am-accent-500:  #0ea88c;   /* teal-green accent */
-  --am-accent-700:  #076b58;
+  /* Section 5.2 Brand Accent (Real Addis Mesob Gold #fbd603) */
+  --am-accent-500:  #fbd603;   /* true brand gold from official logo */
+  --am-accent-700:  #8c5d03;   /* WCAG AA compliant dark amber-gold for text on light surfaces */
 
   /* Section 5.2 Ethiopian Heritage */
   --am-heritage-green:  #078930;

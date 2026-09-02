@@ -155,23 +155,78 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         const label = isAm ? field.labelAm || field.label : field.label;
         const placeholder = isAm ? field.placeholderAm || field.placeholder : field.placeholder;
         const err = errors[field.name];
+        const inputId = `field-${field.name}`;
+        const errorId = `error-${field.name}`;
+
+        if (field.dataType === 'multi_select') {
+          return (
+            <fieldset key={field.name} className="flex flex-col space-y-1">
+              <legend className="text-sm font-medium text-gray-700">
+                {label}
+                {field.isRequired && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+              </legend>
+              <div className="space-y-1 pt-1 border border-gray-200 rounded p-2 bg-gray-50">
+                {field.options?.map((opt, idx) => {
+                  const selected: string[] = Array.isArray(values[field.name]) ? values[field.name] : [];
+                  const isChecked = selected.includes(opt);
+                  const optionId = `field-${field.name}-${idx}`;
+                  return (
+                    <div key={opt} className="flex items-center space-x-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        id={optionId}
+                        checked={isChecked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            handleChange(field.name, [...selected, opt]);
+                          } else {
+                            handleChange(
+                              field.name,
+                              selected.filter((item) => item !== opt),
+                            );
+                          }
+                        }}
+                        className="h-4 w-4 text-am-primary-500 focus:ring-am-primary-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor={optionId} className="cursor-pointer select-none">
+                        {opt}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+              {err && (
+                <p id={errorId} role="alert" className="text-xs text-red-600 mt-1 font-medium">
+                  {err}
+                </p>
+              )}
+            </fieldset>
+          );
+        }
 
         return (
           <div key={field.name} className="flex flex-col space-y-1">
-            <label className="text-sm font-medium text-gray-700 flex items-center justify-between">
+            <label
+              htmlFor={inputId}
+              className="text-sm font-medium text-gray-700 flex items-center justify-between"
+            >
               <span>
                 {label}
-                {field.isRequired && <span className="text-red-500 ml-1">*</span>}
+                {field.isRequired && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
               </span>
             </label>
 
             {field.dataType === 'text' && (
               <input
+                id={inputId}
                 type="text"
                 value={values[field.name] ?? ''}
                 placeholder={placeholder}
+                aria-required={field.isRequired ? true : undefined}
+                aria-invalid={err ? true : undefined}
+                aria-describedby={err ? errorId : undefined}
                 onChange={(e) => handleChange(field.name, e.target.value)}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-am-primary-500 text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               />
@@ -179,11 +234,15 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
             {field.dataType === 'number' && (
               <input
+                id={inputId}
                 type="number"
                 value={values[field.name] ?? ''}
                 placeholder={placeholder}
+                aria-required={field.isRequired ? true : undefined}
+                aria-invalid={err ? true : undefined}
+                aria-describedby={err ? errorId : undefined}
                 onChange={(e) => handleChange(field.name, e.target.value)}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-am-primary-500 text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               />
@@ -191,10 +250,14 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
             {field.dataType === 'date' && (
               <input
+                id={inputId}
                 type="date"
                 value={values[field.name] ? String(values[field.name]).split('T')[0] : ''}
+                aria-required={field.isRequired ? true : undefined}
+                aria-invalid={err ? true : undefined}
+                aria-describedby={err ? errorId : undefined}
                 onChange={(e) => handleChange(field.name, e.target.value)}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-am-primary-500 text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               />
@@ -204,12 +267,12 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               <div className="flex items-center space-x-2 pt-1">
                 <input
                   type="checkbox"
-                  id={`field-${field.name}`}
+                  id={inputId}
                   checked={Boolean(values[field.name])}
                   onChange={(e) => handleChange(field.name, e.target.checked)}
-                  className="h-4 w-4 text-[#1668c1] focus:ring-[#1668c1] border-gray-300 rounded"
+                  className="h-4 w-4 text-am-primary-500 focus:ring-am-primary-500 border-gray-300 rounded"
                 />
-                <label htmlFor={`field-${field.name}`} className="text-sm text-gray-600 select-none">
+                <label htmlFor={inputId} className="text-sm text-gray-600 select-none cursor-pointer">
                   {isAm ? 'አዎ / ነቅቷል' : 'Yes / Active'}
                 </label>
               </div>
@@ -217,9 +280,13 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
             {field.dataType === 'single_select' && (
               <select
+                id={inputId}
                 value={values[field.name] ?? ''}
+                aria-required={field.isRequired ? true : undefined}
+                aria-invalid={err ? true : undefined}
+                aria-describedby={err ? errorId : undefined}
                 onChange={(e) => handleChange(field.name, e.target.value)}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-am-primary-500 text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               >
@@ -232,48 +299,27 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               </select>
             )}
 
-            {field.dataType === 'multi_select' && (
-              <div className="space-y-1 pt-1 border border-gray-200 rounded p-2 bg-gray-50">
-                {field.options?.map((opt) => {
-                  const selected: string[] = Array.isArray(values[field.name]) ? values[field.name] : [];
-                  const isChecked = selected.includes(opt);
-                  return (
-                    <label key={opt} className="flex items-center space-x-2 text-sm text-gray-700">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            handleChange(field.name, [...selected, opt]);
-                          } else {
-                            handleChange(
-                              field.name,
-                              selected.filter((item) => item !== opt),
-                            );
-                          }
-                        }}
-                        className="h-4 w-4 text-[#1668c1] focus:ring-[#1668c1] border-gray-300 rounded"
-                      />
-                      <span>{opt}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-
             {field.dataType === 'attachment' && (
               <input
+                id={inputId}
                 type="text"
                 placeholder={isAm ? 'የፋይል ወይም ዶክመንት URL' : 'Document or attachment URL'}
                 value={typeof values[field.name] === 'object' ? values[field.name]?.url ?? '' : values[field.name] ?? ''}
+                aria-required={field.isRequired ? true : undefined}
+                aria-invalid={err ? true : undefined}
+                aria-describedby={err ? errorId : undefined}
                 onChange={(e) => handleChange(field.name, { url: e.target.value })}
-                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1668c1] text-sm ${
+                className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-am-primary-500 text-sm ${
                   err ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               />
             )}
 
-            {err && <p className="text-xs text-red-600 mt-1 font-medium">{err}</p>}
+            {err && (
+              <p id={errorId} role="alert" className="text-xs text-red-600 mt-1 font-medium">
+                {err}
+              </p>
+            )}
           </div>
         );
       })}
@@ -282,7 +328,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-[#1668c1] hover:bg-[#10529b] text-white font-medium py-2 px-4 rounded-md shadow transition-colors disabled:opacity-50 text-sm"
+          className="w-full bg-am-primary-500 hover:bg-am-primary-600 text-white font-medium py-2 px-4 rounded-md shadow transition-colors disabled:opacity-50 text-sm"
         >
           {submitLabel || (lang === 'am' ? 'አስቀምጥ' : 'Save')}
         </button>

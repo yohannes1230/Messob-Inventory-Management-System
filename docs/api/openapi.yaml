@@ -35,8 +35,14 @@ tags:
     description: Lifecycle status and state transition management
   - name: Master Data - Request Types
     description: Request type classification
+  - name: Master Data - Suppliers
+    description: Supplier and vendor master data management (FR-REG-06)
   - name: Custom Fields
     description: Dynamic custom field schema and validation engine
+  - name: Assets
+    description: Asset registration, auto-coding, QR generation, photo attachments, and bulk import (FR-REG-01 through 06)
+  - name: Assignments
+    description: Custody allocation, acceptance, return, transfer, and chronological timeline history (FR-ASG-01 through 06)
 paths:
   /auth/login:
     post:
@@ -2664,6 +2670,529 @@ paths:
                         type: object
         '400':
           description: Validation failed with detailed errors per field
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /suppliers:
+    get:
+      tags:
+        - Master Data - Suppliers
+      summary: List suppliers with search, pagination and filtering
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of suppliers
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Master Data - Suppliers
+      summary: Create new supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSupplierInput'
+      responses:
+        '201':
+          description: Supplier created
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /suppliers/{id}:
+    patch:
+      tags:
+        - Master Data - Suppliers
+      summary: Update supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSupplierInput'
+      responses:
+        '200':
+          description: Supplier updated
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /suppliers/{id}/deactivate:
+    post:
+      tags:
+        - Master Data - Suppliers
+      summary: Deactivate supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Supplier deactivated
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /suppliers/{id}/history:
+    get:
+      tags:
+        - Master Data - Suppliers
+      summary: Get supplier audit history
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Supplier audit history
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets:
+    get:
+      tags:
+        - Assets
+      summary: Query assets with search, filtering, and pagination
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [available, pending_acceptance, assigned, in_transfer, maintenance, lost, disposed]
+        - name: branch
+          in: query
+          schema:
+            type: string
+        - name: custodian
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated asset list
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Assets
+      summary: Register new asset with auto-sequence code and dynamic custom fields (FR-REG-01, FR-REG-02)
+      description: Accessible by super_admin, ict_admin, property_officer (asset.create), or store_keeper (asset.receive).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssetInput'
+      responses:
+        '201':
+          description: Asset created with unique asset code and QR payload
+        '400':
+          description: Validation error or missing required custom fields
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets/bulk-import/dry-run:
+    post:
+      tags:
+        - Assets
+      summary: Pre-import dry-run validation report (FR-REG-04)
+      description: Validates all rows against schema, master data references, and custom fields without writing records.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkImportDryRunInput'
+      responses:
+        '200':
+          description: Pre-import validation report with row-by-row error breakdown
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets/bulk-import/commit:
+    post:
+      tags:
+        - Assets
+      summary: Commit bulk import batch (FR-REG-04)
+      description: Atomically writes valid rows, generates sequential asset codes, and records bulk-import audit entry.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkImportCommitInput'
+      responses:
+        '201':
+          description: Bulk import batch committed
+        '400':
+          description: Batch validation failed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets/{id}:
+    get:
+      tags:
+        - Assets
+      summary: Get asset details by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Asset details with populated references
+        '404':
+          description: Asset not found
+    patch:
+      tags:
+        - Assets
+      summary: Update asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAssetInput'
+      responses:
+        '200':
+          description: Asset updated
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets/{id}/deactivate:
+    post:
+      tags:
+        - Assets
+      summary: Deactivate or soft-delete asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Asset deactivated
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets/{id}/qr:
+    get:
+      tags:
+        - Assets
+      summary: Retrieve QR code payload and barcode metadata (FR-REG-03)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: QR code payload and barcode format
+        '404':
+          description: Asset not found
+  /assets/{id}/barcode:
+    get:
+      tags:
+        - Assets
+      summary: Retrieve barcode payload and format (FR-REG-03)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Barcode payload and format
+        '404':
+          description: Asset not found
+  /assets/{id}/photos:
+    post:
+      tags:
+        - Assets
+      summary: Attach photos to asset (FR-REG-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachPhotoInput'
+      responses:
+        '200':
+          description: Photos attached
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets/{id}/bundle-attach:
+    post:
+      tags:
+        - Assets
+      summary: Attach child asset to bundle parent (FR-ASG-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachBundleInput'
+      responses:
+        '200':
+          description: Child attached to bundle parent
+        '400':
+          description: Invalid bundle operation
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets/{id}/bundle-detach:
+    post:
+      tags:
+        - Assets
+      summary: Detach child asset from bundle parent (FR-ASG-05)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachBundleInput'
+      responses:
+        '200':
+          description: Child detached from bundle parent
+        '400':
+          description: Invalid bundle operation
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets/{id}/history:
+    get:
+      tags:
+        - Assets
+      summary: Full chronological custody timeline history (FR-ASG-06)
+      description: Returns combined timeline of registration, assignment, acceptance, transfer, and return events.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Chronological custody timeline
+        '404':
+          description: Asset not found
+  /assignments:
+    get:
+      tags:
+        - Assignments
+      summary: List assignments with filters
+      parameters:
+        - name: asset
+          in: query
+          schema:
+            type: string
+        - name: custodian
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending_acceptance, active, returned, transferred]
+      responses:
+        '200':
+          description: List of assignments
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Assignments
+      summary: Create asset assignment (FR-ASG-01, FR-ASG-05)
+      description: Accessible by property_officer (assignment.create) or store_keeper (asset.dispatch).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssignmentInput'
+      responses:
+        '201':
+          description: Assignment created with bundle cascade
+        '400':
+          description: Asset not available for assignment
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assignments/{id}:
+    get:
+      tags:
+        - Assignments
+      summary: Get assignment details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assignment details
+        '404':
+          description: Assignment not found
+  /assignments/{id}/accept:
+    post:
+      tags:
+        - Assignments
+      summary: Accept pending assignment (FR-ASG-02)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptAssignmentInput'
+      responses:
+        '200':
+          description: Assignment accepted and active
+        '400':
+          description: Assignment not in pending_acceptance state
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assignments/{id}/return:
+    post:
+      tags:
+        - Assignments
+      summary: Return assigned asset to stock or maintenance (FR-ASG-03)
+      description: Accessible by property_officer (assignment.create) or store_keeper (asset.receive).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnAssignmentInput'
+      responses:
+        '200':
+          description: Asset returned, custody cleared, and status updated
+        '400':
+          description: Assignment is not active
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assignments/{id}/transfer:
+    post:
+      tags:
+        - Assignments
+      summary: Transfer assignment to new custodian (FR-ASG-04)
+      description: Accessible by property_officer (transfer.create) or store_keeper (asset.dispatch).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferAssignmentInput'
+      responses:
+        '200':
+          description: Asset transferred to new custodian
+        '400':
+          description: Assignment is not active
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

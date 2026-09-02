@@ -96,3 +96,68 @@ export const CUSTOMFIELD_EVENT = {
 } as const;
 
 export type CustomFieldEvent = (typeof CUSTOMFIELD_EVENT)[keyof typeof CUSTOMFIELD_EVENT];
+
+/**
+ * Lifecycle states for Assets (Design Doc §7 and SRS §7).
+ */
+export const ASSET_STATUS = {
+  AVAILABLE: 'available',
+  PENDING_ACCEPTANCE: 'pending_acceptance',
+  ASSIGNED: 'assigned',
+  IN_TRANSFER: 'in_transfer',
+  MAINTENANCE: 'maintenance',
+  LOST: 'lost',
+  DISPOSED: 'disposed',
+} as const;
+
+export type AssetStatus = (typeof ASSET_STATUS)[keyof typeof ASSET_STATUS];
+
+/**
+ * Lifecycle states for Assignments (Design Doc §6.2 and SRS 9.12).
+ */
+export const ASSIGNMENT_STATUS = {
+  PENDING_ACCEPTANCE: 'pending_acceptance',
+  ACTIVE: 'active',
+  RETURNED: 'returned',
+  TRANSFERRED: 'transferred',
+} as const;
+
+export type AssignmentStatus = (typeof ASSIGNMENT_STATUS)[keyof typeof ASSIGNMENT_STATUS];
+
+/**
+ * Asset event types logged to AuditLog.
+ */
+export const ASSET_EVENT = {
+  CREATED: 'asset.created',
+  UPDATED: 'asset.updated',
+  DEACTIVATED: 'asset.deactivated',
+  IMPORTED: 'asset.imported',
+  PHOTO_ATTACHED: 'asset.photo_attached',
+  BUNDLE_ATTACHED: 'asset.bundle_attached',
+  BUNDLE_DETACHED: 'asset.bundle_detached',
+} as const;
+
+export type AssetEvent = (typeof ASSET_EVENT)[keyof typeof ASSET_EVENT];
+
+/**
+ * Assignment event types logged to AuditLog.
+ */
+export const ASSIGNMENT_EVENT = {
+  CREATED: 'assignment.created',
+  ACCEPTED: 'assignment.accepted',
+  RETURNED: 'assignment.returned',
+  TRANSFERRED: 'assignment.transferred',
+} as const;
+
+export type AssignmentEvent = (typeof ASSIGNMENT_EVENT)[keyof typeof ASSIGNMENT_EVENT];
+
+/**
+ * Supplier event types logged to AuditLog.
+ */
+export const SUPPLIER_EVENT = {
+  CREATED: 'supplier.created',
+  UPDATED: 'supplier.updated',
+  DEACTIVATED: 'supplier.deactivated',
+} as const;
+
+export type SupplierEvent = (typeof SUPPLIER_EVENT)[keyof typeof SUPPLIER_EVENT];

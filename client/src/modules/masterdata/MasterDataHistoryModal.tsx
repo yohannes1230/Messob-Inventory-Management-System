@@ -32,12 +32,17 @@ export const MasterDataHistoryModal: React.FC<MasterDataHistoryModalProps> = ({
   const isAm = lang === 'am';
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="history-modal-title"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4"
+    >
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden border border-gray-200">
         {/* Modal Header */}
         <div className="px-6 py-4 bg-[#eef6ff] border-b border-[#d9ecff] flex items-center justify-between">
           <div>
-            <h3 className="text-base font-bold text-gray-900">
+            <h3 id="history-modal-title" className="text-base font-bold text-gray-900">
               {isAm ? 'የለውጥ ታሪክ' : 'Audit & Change History'}
             </h3>
             <p className="text-xs text-gray-600 mt-0.5">
@@ -45,10 +50,12 @@ export const MasterDataHistoryModal: React.FC<MasterDataHistoryModalProps> = ({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label={isAm ? 'ዝጋ' : 'Close'}
             className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -68,7 +75,7 @@ export const MasterDataHistoryModal: React.FC<MasterDataHistoryModalProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <span className="px-2 py-0.5 bg-[#1668c1] text-white text-xs font-bold rounded">
+                      <span className="px-2 py-0.5 bg-am-primary-500 text-white text-xs font-bold rounded">
                         v{entry.version}
                       </span>
                       <span
@@ -88,14 +95,14 @@ export const MasterDataHistoryModal: React.FC<MasterDataHistoryModalProps> = ({
                       </span>
                     </div>
                     <div className="flex items-center text-xs text-gray-500 space-x-1">
-                      <Clock className="h-3.5 w-3.5" />
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>{new Date(entry.timestamp).toLocaleString()}</span>
                     </div>
                   </div>
 
                   {entry.performedBy && (
                     <div className="flex items-center text-xs text-gray-600 space-x-1">
-                      <User className="h-3.5 w-3.5 text-gray-400" />
+                      <User className="h-3.5 w-3.5 text-gray-400" aria-hidden="true" />
                       <span>{isAm ? 'አከናወኝ:' : 'Performed by:'} {entry.performedBy}</span>
                     </div>
                   )}
@@ -127,7 +134,7 @@ export const MasterDataHistoryModal: React.FC<MasterDataHistoryModalProps> = ({
 
                   {entry.action === 'create' && (
                     <div className="flex items-center text-xs text-green-700 pt-1">
-                      <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                      <CheckCircle2 className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
                       <span>{isAm ? 'የመጀመሪያ ምዝገባ ተጠናቅቋል' : 'Initial record creation snapshot'}</span>
                     </div>
                   )}
@@ -140,6 +147,7 @@ export const MasterDataHistoryModal: React.FC<MasterDataHistoryModalProps> = ({
         {/* Modal Footer */}
         <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-end">
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-1.5 text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 rounded transition-colors"
           >

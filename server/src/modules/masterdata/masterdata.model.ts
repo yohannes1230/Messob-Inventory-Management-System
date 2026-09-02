@@ -363,3 +363,45 @@ export const MasterDataHistoryModel = mongoose.model<MasterDataHistoryDocument>(
   'MasterDataHistory',
   masterDataHistorySchema,
 );
+
+// ── Supplier Schema (SRS 9.18) ──
+export interface SupplierDocument extends Document {
+  _id: Types.ObjectId;
+  name: string;
+  contact: {
+    person?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+  };
+  taxId?: string;
+  category?: string;
+  isActive: boolean;
+  version: number;
+  createdBy?: Types.ObjectId;
+  updatedBy?: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const supplierSchema = new Schema<SupplierDocument>(
+  {
+    name: { type: String, required: true, trim: true, index: true },
+    contact: {
+      person: { type: String, trim: true },
+      phone: { type: String, trim: true },
+      email: { type: String, trim: true },
+      address: { type: String, trim: true },
+    },
+    taxId: { type: String, trim: true },
+    category: { type: String, trim: true },
+    isActive: { type: Boolean, default: true, index: true },
+    version: { type: Number, default: 1, required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+  },
+  { timestamps: true },
+);
+
+export const SupplierModel = mongoose.model<SupplierDocument>('Supplier', supplierSchema);
+
