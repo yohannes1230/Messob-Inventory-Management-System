@@ -121,6 +121,13 @@ export const PERMISSIONS = {
   TRANSFER_APPROVE: 'transfer.approve',
   HISTORY_VIEW_OWN: 'history.view.own',
   HISTORY_VIEW_FULL: 'history.view.full',
+
+  // ── Phase 4: Employee Self-Service Portal & Requests (FR-ESS-01→08) ──
+  REQUEST_CREATE_OWN: 'request.create.own',
+  REQUEST_VIEW_OWN: 'request.view.own',
+  REQUEST_VIEW_ALL: 'request.view.all',
+  REQUEST_CANCEL_OWN: 'request.cancel.own',
+  ASSET_REPORT_ISSUE: 'asset.report_issue',
 } as const;
 
 /** Union type of all valid permission strings. */

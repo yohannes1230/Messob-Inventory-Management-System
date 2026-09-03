@@ -120,4 +120,13 @@ describe('Axe-Core Automated Accessibility Scans (Design Doc §13)', () => {
     console.log('AssetConsole Violations:', scan.allViolations.map((v) => ({ id: v.id, impact: v.impact, description: v.description })));
     expect(scan.criticalCount).toBe(0);
   });
+
+  it('scans EmployeePortal for Phase 4 accessibility bar (zero critical violations)', async () => {
+    const { EmployeePortal } = await import('../src/modules/portal/EmployeePortal.js');
+    const { container } = render(<EmployeePortal initialLocale="en" />);
+    const scan = await runAxeScan(container);
+    console.log('EmployeePortal Violations:', scan.allViolations.map((v) => ({ id: v.id, impact: v.impact, description: v.description })));
+    expect(scan.criticalCount).toBe(0);
+  });
 });
+

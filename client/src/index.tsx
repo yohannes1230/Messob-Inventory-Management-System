@@ -3,11 +3,12 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import { MasterDataConsole } from './modules/masterdata/MasterDataConsole.js';
 import { AssetConsole } from './modules/assets/AssetConsole.js';
-import { Database, Package } from 'lucide-react';
+import { EmployeePortal } from './modules/portal/EmployeePortal.js';
+import { Database, Package, UserCheck } from 'lucide-react';
 import mesobIcon from './assets/branding/mesob-icon.png';
 
 const App: React.FC = () => {
-  const [activeModule, setActiveModule] = useState<'assets' | 'masterdata'>('assets');
+  const [activeModule, setActiveModule] = useState<'portal' | 'assets' | 'masterdata'>('portal');
 
   return (
     <div>
@@ -21,6 +22,18 @@ const App: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setActiveModule('portal')}
+            className={`flex items-center space-x-1.5 px-3 py-1 rounded-md transition-colors ${
+              activeModule === 'portal'
+                ? 'bg-am-primary-500 text-white font-semibold shadow-xs'
+                : 'text-slate-300 hover:bg-slate-800'
+            }`}
+          >
+            <UserCheck className="w-3.5 h-3.5" />
+            <span>Employee Portal (Phase 4)</span>
+          </button>
+
           <button
             onClick={() => setActiveModule('assets')}
             className={`flex items-center space-x-1.5 px-3 py-1 rounded-md transition-colors ${
@@ -48,10 +61,13 @@ const App: React.FC = () => {
       </div>
 
       {/* Active Module View */}
-      {activeModule === 'assets' ? <AssetConsole /> : <MasterDataConsole />}
+      {activeModule === 'portal' && <EmployeePortal />}
+      {activeModule === 'assets' && <AssetConsole />}
+      {activeModule === 'masterdata' && <MasterDataConsole />}
     </div>
   );
 };
+
 
 const rootElement = document.getElementById('root');
 if (rootElement) {

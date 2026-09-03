@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { assetController } from './asset.controller.js';
 import { assignmentController } from '../assignments/assignment.controller.js';
+import { requestController } from '../requests/request.controller.js';
 import { authGuard } from '../../common/middleware/auth-guard.js';
 import { requirePermission, requireAnyPermission } from '../../common/middleware/rbac-guard.js';
 import { queryHandler, mutationHandler } from '../../common/middleware/transaction.middleware.js';
@@ -13,6 +14,8 @@ import {
   BulkImportCommitSchema,
   AttachPhotoSchema,
   AttachBundleSchema,
+  ReportIssueSchema,
+  RequestReturnSchema,
 } from '@am-pms/shared-types';
 
 export const assetRouter = Router();
@@ -123,5 +126,23 @@ assetRouter.get(
   authGuard,
   requireAnyPermission(PERMISSIONS.HISTORY_VIEW_FULL, PERMISSIONS.HISTORY_VIEW_OWN),
   queryHandler(assignmentController.getAssetHistory.bind(assignmentController)),
+);
+
+// ── 11. Report Damage / Loss / Malfunction (FR-ESS-05) ──
+assetRouter.post(
+  '/:id/report-issue',
+  authGuard,
+  requirePermission(PERMISSIONS.ASSET_REPORT_ISSUE),
+  validate(ReportIssueSchema),
+  mutationHandler(requestController.reportIssue.bind(requestController)),
+);
+
+// ── 12. Initiate Return Request (FR-ESS-04) ──
+assetRouter.post(
+  '/:id/request-return',
+  authGuard,
+  requirePermission(PERMISSIONS.ASSIGNMENT_RETURN),
+  validate(RequestReturnSchema),
+  mutationHandler(requestController.requestReturn.bind(requestController)),
 );
 

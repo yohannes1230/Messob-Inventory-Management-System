@@ -12,3 +12,5 @@ export * from './asset.types.js';
 export * from './asset.schemas.js';
 export * from './assignment.types.js';
 export * from './assignment.schemas.js';
+export * from './request.types.js';
+export * from './request.schemas.js';

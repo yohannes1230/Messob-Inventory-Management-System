@@ -3058,6 +3058,62 @@ paths:
           description: Chronological custody timeline
         '404':
           description: Asset not found
+  /assets/{id}/report-issue:
+    post:
+      tags:
+        - Assets
+        - Requests
+      summary: Report damage, loss, or malfunction creating a Request (FR-ESS-05)
+      description: Creates a canonical Request of type damage_loss linked to the target asset.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportIssueInput'
+      responses:
+        '201':
+          description: Damage or loss report created as a Request
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assets/{id}/request-return:
+    post:
+      tags:
+        - Assets
+        - Requests
+      summary: Initiate asset return request (FR-ESS-04)
+      description: Initiates employee return request creating a Request of type return.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestReturnInput'
+      responses:
+        '201':
+          description: Return request initiated successfully
+        '400':
+          description: Validation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /assignments:
     get:
       tags:
@@ -3197,7 +3253,149 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+  # --- Phase 4: Requests & Employee Self-Service ---
+  /requests:
+    get:
+      tags:
+        - Requests
+      summary: List all requests with filters and pagination
+      description: Accessible by property_officer, manager, auditor, and ict_admin.
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated list of requests
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Requests
+      summary: Create self-service property request (FR-ESS-01)
+      description: Derives and validates request type against requestType.module at write time.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequestInput'
+      responses:
+        '201':
+          description: Request created successfully with sequential REQ code
+        '400':
+          description: Validation or mapping violation error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /requests/dashboard:
+    get:
+      tags:
+        - Requests
+      summary: Employee personal dashboard KPI summary (FR-ESS-08)
+      description: Returns counts of active assets, pending acceptances, active requests, and open maintenance issues for the authenticated employee.
+      responses:
+        '200':
+          description: Personal dashboard KPI summary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /requests/mine:
+    get:
+      tags:
+        - Requests
+      summary: List current employee's own requests
+      description: Accessible by authenticated employees to track their own requests.
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Current user's paginated requests
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /requests/{id}:
+    get:
+      tags:
+        - Requests
+      summary: Get request details by ID
+      description: Accessible by requestor or users with request.view.all permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detailed request document
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Request not found
+  /requests/{id}/cancel:
+    post:
+      tags:
+        - Requests
+      summary: Cancel own submitted request
+      description: Allows requestor to cancel request if in submitted or in_review state.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelRequestInput'
+      responses:
+        '200':
+          description: Request successfully cancelled
+        '400':
+          description: Cannot cancel request in current status
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 components:
+
   securitySchemes:
     BearerAuth:
       type: http
@@ -3954,7 +4152,71 @@ components:
           type: string
         order:
           type: integer
+    CreateRequestInput:
+      type: object
+      required:
+        - requestTypeId
+        - payload
+      properties:
+        type:
+          type: string
+          enum: [asset_allocation, return, transfer, damage_loss]
+        requestTypeId:
+          type: string
+        targetAsset:
+          type: string
+        targetPropertyType:
+          type: string
+        payload:
+          type: object
+          properties:
+            justification:
+              type: string
+            urgency:
+              type: string
+              enum: [low, medium, high, critical]
+            requestedSpecifications:
+              type: string
+    ReportIssueInput:
+      type: object
+      required:
+        - issueType
+        - description
+      properties:
+        issueType:
+          type: string
+          enum: [damage, loss, malfunction]
+        severity:
+          type: string
+          enum: [minor, moderate, severe, critical]
+        description:
+          type: string
+        photos:
+          type: array
+          items:
+            type: string
+        incidentDate:
+          type: string
+          format: date-time
+    RequestReturnInput:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+        conditionNotes:
+          type: string
+        proposedReturnDate:
+          type: string
+          format: date-time
+    CancelRequestInput:
+      type: object
+      properties:
+        reason:
+          type: string
   responses:
+
     Unauthorized:
       description: Unauthorized or token invalid/expired
       content:

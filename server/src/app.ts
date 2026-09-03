@@ -25,6 +25,7 @@ import { masterDataRouter } from './modules/masterdata/masterdata.routes.js';
 import { customFieldRouter } from './modules/customfields/customfield.routes.js';
 import { assetRouter } from './modules/assets/asset.routes.js';
 import { assignmentRouter } from './modules/assignments/assignment.routes.js';
+import { requestRouter } from './modules/requests/request.routes.js';
 import { NotFoundError } from './common/utils/errors.js';
 
 export const app = express();
@@ -65,6 +66,7 @@ app.use('/api/v1', masterDataRouter);
 app.use('/api/v1', customFieldRouter);
 app.use('/api/v1/assets', assetRouter);
 app.use('/api/v1/assignments', assignmentRouter);
+app.use('/api/v1/requests', requestRouter);
 
 // ── 7. Health check ──
 app.get('/api/health', (_req, res) => {

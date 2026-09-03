@@ -161,3 +161,44 @@ export const SUPPLIER_EVENT = {
 } as const;
 
 export type SupplierEvent = (typeof SUPPLIER_EVENT)[keyof typeof SUPPLIER_EVENT];
+
+/**
+ * Request category discriminator (Design Doc §6.2 / Phase 4 plan).
+ */
+export const REQUEST_CATEGORY = {
+  ASSET_ALLOCATION: 'asset_allocation',
+  RETURN: 'return',
+  TRANSFER: 'transfer',
+  DAMAGE_LOSS: 'damage_loss',
+} as const;
+
+export type RequestCategory = (typeof REQUEST_CATEGORY)[keyof typeof REQUEST_CATEGORY];
+
+/**
+ * Request lifecycle statuses (Design Doc §6.2 and SRS 9.13).
+ */
+export const REQUEST_STATUS = {
+  SUBMITTED: 'submitted',
+  IN_REVIEW: 'in_review',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  RETURNED_FOR_CLARIFICATION: 'returned_for_clarification',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+} as const;
+
+export type RequestStatus = (typeof REQUEST_STATUS)[keyof typeof REQUEST_STATUS];
+
+/**
+ * Request event types logged to AuditLog.
+ */
+export const REQUEST_EVENT = {
+  CREATED: 'request.created',
+  UPDATED: 'request.updated',
+  CANCELLED: 'request.cancelled',
+  ISSUE_REPORTED: 'request.issue_reported',
+  RETURN_REQUESTED: 'request.return_requested',
+} as const;
+
+export type RequestEvent = (typeof REQUEST_EVENT)[keyof typeof REQUEST_EVENT];
+

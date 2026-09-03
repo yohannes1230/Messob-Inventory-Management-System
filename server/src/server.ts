@@ -7,6 +7,7 @@ import { config, connectDatabase, connectRedis } from './common/config/index.js'
 import { logger } from './common/utils/logger.js';
 import { seedAuthData } from './modules/auth/index.js';
 import { scheduleTokenCleanup } from './jobs/token-cleanup.job.js';
+import { initSocketServer } from './sockets/index.js';
 
 async function bootstrap(): Promise<void> {
   try {
@@ -29,6 +30,9 @@ async function bootstrap(): Promise<void> {
         '🚀 AM-PMS API server started',
       );
     });
+
+    // Initialize Socket.IO server (FR-ESS-07)
+    initSocketServer(server);
 
     // Graceful shutdown
     const shutdown = async (signal: string) => {
